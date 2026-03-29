@@ -1,0 +1,187 @@
+<svg width="1800" height="980" viewBox="0 0 1800 980" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1800" y2="980" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F3F5F7"/>
+      <stop offset="1" stop-color="#ECEFF3"/>
+    </linearGradient>
+    <linearGradient id="topbar" x1="16" y1="16" x2="1584" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#171A1F"/>
+      <stop offset="1" stop-color="#20242C"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="1800" height="980" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="10"/>
+      <feGaussianBlur stdDeviation="18"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0470588 0 0 0 0 0.0588235 0 0 0 0 0.0823529 0 0 0 0.08 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+    <filter id="softShadow" x="0" y="0" width="1800" height="980" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="6"/>
+      <feGaussianBlur stdDeviation="10"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0509804 0 0 0 0 0.0666667 0 0 0 0 0.0941176 0 0 0 0.05 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <rect width="1800" height="980" fill="url(#bg)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="16" y="16" width="1768" height="70" rx="20" fill="url(#topbar)"/>
+  </g>
+
+  <rect x="36" y="31" width="40" height="40" rx="12" fill="#2E3440"/>
+  <text x="92" y="49" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">VGC</text>
+  <text x="92" y="69" fill="#98A2B3" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Caja POS · Mockup sobrio</text>
+
+  <rect x="286" y="34" width="132" height="34" rx="17" fill="#2A2F37"/>
+  <text x="312" y="55" fill="#F3F4F6" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">Casa Central</text>
+
+  <rect x="430" y="34" width="166" height="34" rx="17" fill="#253129"/>
+  <text x="455" y="55" fill="#D1FAE5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Caja abierta · Lucia Diaz</text>
+
+  <rect x="610" y="34" width="180" height="34" rx="17" fill="#2A2F37"/>
+  <text x="638" y="55" fill="#E5E7EB" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">Cierre anterior · 1 venta</text>
+
+  <rect x="1280" y="34" width="112" height="34" rx="17" fill="#2A2F37"/>
+  <text x="1312" y="55" fill="#F3F4F6" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">F1 Buscar</text>
+
+  <rect x="1404" y="34" width="92" height="34" rx="17" fill="#2A2F37"/>
+  <text x="1431" y="55" fill="#F3F4F6" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">F2 Pagos</text>
+
+  <rect x="1508" y="34" width="58" height="34" rx="17" fill="#2A2F37"/>
+  <text x="1524" y="55" fill="#F3F4F6" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">LC</text>
+
+  <g filter="url(#softShadow)">
+    <rect x="16" y="106" width="1398" height="856" rx="24" fill="#FFFFFF"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="1430" y="106" width="354" height="856" rx="24" fill="#FFFFFF"/>
+  </g>
+
+  <text x="44" y="146" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700">Caja de venta</text>
+  <text x="44" y="172" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="500">Diseño amplio, silencioso y orientado a operacion continua.</text>
+
+  <rect x="1146" y="126" width="118" height="34" rx="17" fill="#F5F6F7" stroke="#E5E7EB"/>
+  <text x="1172" y="147" fill="#4B5563" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Scanner listo</text>
+
+  <rect x="1276" y="126" width="110" height="34" rx="17" fill="#111827"/>
+  <text x="1301" y="147" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Confirmar</text>
+
+  <rect x="36" y="194" width="1378" height="54" rx="18" fill="#F8FAFC" stroke="#E5E7EB"/>
+  <text x="58" y="227" fill="#9CA3AF" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">Buscar por producto, SKU o codigo de barras...</text>
+
+  <rect x="36" y="270" width="1378" height="50" rx="16" fill="#F8FAFC"/>
+  <text x="58" y="300" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Producto</text>
+  <text x="624" y="300" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Stock</text>
+  <text x="736" y="300" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Cantidad</text>
+  <text x="876" y="300" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Precio</text>
+  <text x="1174" y="300" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Subtotal</text>
+  <text x="1300" y="300" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Accion</text>
+
+  <rect x="36" y="334" width="1378" height="88" rx="18" fill="#FFFFFF" stroke="#ECEFF3"/>
+  <rect x="52" y="352" width="4" height="52" rx="2" fill="#374151"/>
+  <text x="74" y="366" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">CAMP-NEV-42</text>
+  <text x="74" y="391" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="500">Campera Nevada · Negra · Talle M</text>
+  <text x="624" y="384" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">12</text>
+  <rect x="718" y="358" width="96" height="40" rx="14" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <text x="760" y="383" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">2</text>
+  <text x="876" y="384" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">$ 42.500</text>
+  <text x="1174" y="384" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">$ 85.000</text>
+  <rect x="1296" y="356" width="74" height="42" rx="14" fill="#F3F4F6"/>
+  <text x="1316" y="382" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Editar</text>
+
+  <rect x="36" y="432" width="1378" height="88" rx="18" fill="#FFFFFF" stroke="#ECEFF3"/>
+  <rect x="52" y="450" width="4" height="52" rx="2" fill="#4B5563"/>
+  <text x="74" y="464" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">REM-URB-38</text>
+  <text x="74" y="489" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="500">Remera Urbana · Blanca · Talle L</text>
+  <text x="624" y="482" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">3</text>
+  <rect x="718" y="456" width="96" height="40" rx="14" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <text x="760" y="481" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">1</text>
+  <text x="876" y="482" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">$ 13.500</text>
+  <text x="1174" y="482" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">$ 13.500</text>
+  <rect x="1296" y="454" width="74" height="42" rx="14" fill="#F3F4F6"/>
+  <text x="1316" y="480" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Editar</text>
+
+  <rect x="36" y="530" width="1378" height="88" rx="18" fill="#FFFFFF" stroke="#ECEFF3"/>
+  <rect x="52" y="548" width="4" height="52" rx="2" fill="#6B7280"/>
+  <text x="74" y="562" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PANT-JOG-40</text>
+  <text x="74" y="587" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="500">Jogger New Line · Gris · Talle 40</text>
+  <text x="624" y="580" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">8</text>
+  <rect x="718" y="554" width="96" height="40" rx="14" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <text x="760" y="579" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">1</text>
+  <text x="876" y="580" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">$ 18.900</text>
+  <text x="1174" y="580" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">$ 18.900</text>
+  <rect x="1296" y="552" width="74" height="42" rx="14" fill="#F3F4F6"/>
+  <text x="1316" y="578" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Editar</text>
+
+  <rect x="36" y="640" width="1378" height="120" rx="22" fill="#FBFCFD" stroke="#ECEFF3"/>
+  <text x="58" y="676" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">Panel operativo</text>
+  <text x="58" y="706" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="500">Espacio para observaciones, estado de descuentos y mensajes de validacion sin sobrecargar la parte superior.</text>
+  <text x="58" y="730" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="500">Todo queda alineado a la grilla principal y sin vacios laterales innecesarios.</text>
+
+  <g filter="url(#softShadow)">
+    <rect x="36" y="784" width="1378" height="154" rx="24" fill="#171A1F"/>
+  </g>
+  <text x="60" y="826" fill="#9CA3AF" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">TOTAL A COBRAR</text>
+  <text x="60" y="886" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="700">$ 117.400</text>
+
+  <rect x="456" y="804" width="186" height="100" rx="22" fill="#232831"/>
+  <text x="482" y="840" fill="#9CA3AF" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Pagado</text>
+  <text x="482" y="882" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">$ 98.500</text>
+
+  <rect x="660" y="804" width="186" height="100" rx="22" fill="#232831"/>
+  <text x="686" y="840" fill="#9CA3AF" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Saldo</text>
+  <text x="686" y="882" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">$ 18.900</text>
+
+  <rect x="864" y="804" width="150" height="100" rx="22" fill="#232831"/>
+  <text x="892" y="840" fill="#9CA3AF" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Atajo</text>
+  <text x="892" y="882" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Alt + C</text>
+
+  <rect x="1178" y="798" width="236" height="112" rx="24" fill="#F3F4F6"/>
+  <text x="1216" y="838" fill="#4B5563" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Accion principal</text>
+  <text x="1209" y="882" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Confirmar venta</text>
+
+  <text x="1458" y="146" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Pagos</text>
+  <text x="1458" y="170" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="500">Panel lateral fijo, sereno y siempre visible.</text>
+
+  <rect x="1446" y="196" width="322" height="76" rx="18" fill="#F8FAFC" stroke="#E5E7EB"/>
+  <text x="1470" y="224" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Total items</text>
+  <text x="1470" y="256" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">$ 111.900</text>
+
+  <rect x="1446" y="286" width="322" height="76" rx="18" fill="#F8FAFC" stroke="#E5E7EB"/>
+  <text x="1470" y="314" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Recargos</text>
+  <text x="1470" y="346" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">$ 5.500</text>
+
+  <rect x="1446" y="382" width="322" height="52" rx="16" fill="#FAFAFA" stroke="#ECEFF3"/>
+  <text x="1470" y="413" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Debito</text>
+  <text x="1716" y="413" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">$ 54.000</text>
+
+  <rect x="1446" y="444" width="322" height="52" rx="16" fill="#FAFAFA" stroke="#ECEFF3"/>
+  <text x="1470" y="475" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Credito VISA</text>
+  <text x="1716" y="475" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">$ 44.500</text>
+
+  <rect x="1446" y="506" width="322" height="52" rx="16" fill="#FAFAFA" stroke="#ECEFF3"/>
+  <text x="1470" y="537" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Cuenta corriente</text>
+  <text x="1716" y="537" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">$ 18.900</text>
+
+  <text x="1458" y="614" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Ultimo ticket</text>
+  <rect x="1446" y="636" width="322" height="236" rx="20" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <text x="1470" y="674" fill="#4B5563" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">VTA-000184</text>
+  <text x="1470" y="720" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">$ 105.000</text>
+  <text x="1470" y="754" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="500">Cliente: Ana Lopez</text>
+  <text x="1470" y="780" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="500">Cajero: Lucia Diaz</text>
+  <text x="1470" y="806" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="500">26/03/2026 · 10:44 hs</text>
+
+  <rect x="1470" y="836" width="144" height="34" rx="17" fill="#ECEFF3"/>
+  <text x="1507" y="858" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Detalle</text>
+  <rect x="1622" y="836" width="144" height="34" rx="17" fill="#ECEFF3"/>
+  <text x="1663" y="858" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Imprimir</text>
+
+  <text x="16" y="972" fill="#6B7280" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="500">Referencia visual: docs/mockups/caja-pos-professional-mockup-sober.svg</text>
+</svg>
