@@ -32,7 +32,11 @@
                     <td class="px-6 py-4">
                         <div class="flex flex-wrap justify-end gap-2">
                             <a
-                                href="{{ route('catalogo.variantes.edit', $item['variante']) }}"
+                                href="{{ route('catalogo.variantes.edit', [
+                                    'variante' => $item['variante'],
+                                    'precio' => number_format((float) $item['variante']->precio, 2, '.', ''),
+                                    'costo' => number_format((float) $item['variante']->costo, 2, '.', ''),
+                                ]) }}"
                                 class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100"
                             >
                                 Editar

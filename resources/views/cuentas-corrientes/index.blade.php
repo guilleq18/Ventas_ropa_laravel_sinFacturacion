@@ -10,10 +10,135 @@
 
 @push('styles')
     <style>
+        .cc-page {
+            display: grid;
+            gap: 16px;
+        }
+
         .cc-toolbar {
             display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 0;
+        }
+
+        .cc-toolbar-copy {
+            display: grid;
+            gap: 6px;
+            max-width: 720px;
+        }
+
+        .cc-toolbar-title {
+            margin: 0;
+            font-size: 1.8rem;
+            line-height: 1.04;
+            font-weight: 900;
+            color: var(--ui-text);
+        }
+
+        .cc-toolbar-note {
+            margin: 0;
+            color: var(--ui-text-soft);
+            font-size: 0.94rem;
+            line-height: 1.45;
+        }
+
+        .cc-filter-card .card-content,
+        .cc-list-card .card-content {
+            display: grid;
+            gap: 14px;
+        }
+
+        .cc-filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .cc-filter-actions .btn {
+            flex-shrink: 0;
+        }
+
+        .cc-filter-actions .btn-flat {
+            margin: 0;
+        }
+
+        .cc-toolbar .btn {
+            flex-shrink: 0;
+        }
+
+        .cc-alert-overview {
+            margin-bottom: 0;
+            background: var(--ui-danger-bg);
+            border-color: var(--ui-danger-border);
+            color: var(--ui-danger-text);
+        }
+
+        .cc-action-button-label {
+            display: none;
+        }
+
+        .cc-table-actions {
+            display: inline-flex;
             justify-content: flex-end;
-            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cc-alert-overview strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .cc-overdue-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .02em;
+            background: var(--ui-danger-bg);
+            border: 1px solid var(--ui-danger-border);
+            color: var(--ui-danger-text);
+        }
+
+        .cc-overdue-cell {
+            white-space: nowrap;
+        }
+
+        .cc-table-actions {
+            align-items: center;
+        }
+
+        .cc-action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            gap: 8px;
+            border-radius: 14px;
+            border: 1px solid var(--ui-border);
+            background: rgba(255, 255, 255, 0.82);
+            color: var(--ui-text);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .cc-action-button:hover {
+            transform: translateY(-1px);
+            border-color: var(--ui-border-strong);
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+        }
+
+        .cc-action-button i {
+            font-size: 18px;
+            line-height: 1;
         }
 
         .cc-dni-status {
@@ -54,246 +179,242 @@
             opacity: .88;
         }
 
-        .cc-alert-overview {
-            margin-bottom: 14px;
-            background: var(--ui-danger-bg);
-            border-color: var(--ui-danger-border);
-            color: var(--ui-danger-text);
+        @media (max-width: 768px) {
+            .cc-page {
+                gap: 14px;
+            }
+
+            .cc-toolbar-copy,
+            .cc-toolbar .btn {
+                width: 100%;
+            }
+
+            .cc-toolbar-title {
+                font-size: 1.55rem;
+            }
+
+            .cc-filter-actions {
+                width: 100%;
+            }
+
+            .cc-filter-actions .btn {
+                width: 100%;
+            }
+
+            .cc-table-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .cc-overdue-cell {
+                white-space: normal;
+            }
         }
 
-        .cc-alert-overview strong {
-            display: block;
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
+        @media (max-width: 520px) {
+            .cc-action-button {
+                width: 100%;
+                min-height: 42px;
+                height: auto;
+                padding: 0 14px;
+                justify-content: center;
+            }
 
-        .cc-overdue-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: .02em;
-            background: var(--ui-danger-bg);
-            border: 1px solid var(--ui-danger-border);
-            color: var(--ui-danger-text);
-        }
-
-        .cc-overdue-cell {
-            white-space: nowrap;
-        }
-
-        .cc-table-actions {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .cc-action-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 999px;
-            border: 1px solid var(--ui-border);
-            background: rgba(255, 255, 255, 0.82);
-            color: var(--ui-text);
-            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-        }
-
-        .cc-action-button:hover {
-            transform: translateY(-1px);
-            border-color: var(--ui-border-strong);
-            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
-        }
-
-        .cc-action-button i {
-            font-size: 18px;
-            line-height: 1;
+            .cc-action-button-label {
+                display: inline;
+                font-size: 0.78rem;
+                font-weight: 800;
+                line-height: 1;
+            }
         }
     </style>
 @endpush
 
 @section('content')
-    <div class="cc-toolbar">
-        <a class="btn modal-trigger" href="#modalNuevaCC">
-            <i class="material-icons left">add</i>Nueva cuenta corriente
-        </a>
-    </div>
-
-    @if (($stats['cuentas_con_alerta'] ?? 0) > 0)
-        <div class="card-panel cc-alert-overview">
-            <strong>Alerta de mora +30 dias</strong>
-            Hay {{ $stats['cuentas_con_alerta'] }} cuenta(s) con ventas vencidas por {{ $money($stats['saldo_vencido_30']) }}.
-        </div>
-    @endif
-
-    <div id="modalNuevaCC" class="modal" @if ($openCreateModal) data-auto-open="true" @endif>
-        <div class="modal-content">
-            <div class="admin-modal-head">
-                <h5 class="admin-modal-title">Nueva cuenta corriente</h5>
-                <p class="admin-modal-subtitle">Si el DNI ya existe sin cuenta, se reutiliza ese cliente.</p>
+    <div class="cc-page">
+        <div class="cc-toolbar">
+            <div class="cc-toolbar-copy">
+                <h2 class="cc-toolbar-title">Cuentas corrientes</h2>
+                <p class="cc-toolbar-note">Revisa saldos, alertas de mora y accesos rápidos para registrar pagos o entrar al detalle de cada cliente.</p>
             </div>
 
-            <div class="admin-modal-body">
-                <form
-                    id="form-nueva-cc"
-                    method="POST"
-                    action="{{ route('cuentas-corrientes.store') }}"
-                    data-dni-lookup-url="{{ route('cuentas-corrientes.lookup-dni') }}"
-                >
-                    @csrf
+            <a class="btn modal-trigger" href="#modalNuevaCC">
+                <i class="material-icons left">add</i>Nueva cuenta corriente
+            </a>
+        </div>
 
+        @if (($stats['cuentas_con_alerta'] ?? 0) > 0)
+            <div class="card-panel cc-alert-overview">
+                <strong>Alerta de mora +30 dias</strong>
+                Hay {{ $stats['cuentas_con_alerta'] }} cuenta(s) con ventas vencidas por {{ $money($stats['saldo_vencido_30']) }}.
+            </div>
+        @endif
+
+        <div id="modalNuevaCC" class="modal modal-fixed-footer" @if ($openCreateModal) data-auto-open="true" @endif>
+            <div class="modal-content">
+                <div class="admin-modal-head">
+                    <h5 class="admin-modal-title">Nueva cuenta corriente</h5>
+                    <p class="admin-modal-subtitle">Si el DNI ya existe sin cuenta, se reutiliza ese cliente.</p>
+                </div>
+
+                <div class="admin-modal-body">
+                    <form
+                        id="form-nueva-cc"
+                        method="POST"
+                        action="{{ route('cuentas-corrientes.store') }}"
+                        data-dni-lookup-url="{{ route('cuentas-corrientes.lookup-dni') }}"
+                    >
+                        @csrf
+
+                        <div class="row" style="margin-bottom:0;">
+                            <div class="input-field col s12 m4">
+                                <input id="cc_dni" type="text" name="dni" value="{{ old('dni') }}" required>
+                                <label for="cc_dni" class="active">DNI</label>
+                                @error('dni')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                                <div
+                                    id="cc_dni_status"
+                                    class="card-panel cc-dni-status"
+                                    role="status"
+                                    aria-live="polite"
+                                    hidden
+                                ></div>
+                            </div>
+
+                            <div class="input-field col s12 m4">
+                                <input id="cc_apellido" type="text" name="apellido" value="{{ old('apellido') }}" required>
+                                <label for="cc_apellido" class="active">Apellido</label>
+                                @error('apellido')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="input-field col s12 m4">
+                                <input id="cc_nombre" type="text" name="nombre" value="{{ old('nombre') }}" required>
+                                <label for="cc_nombre" class="active">Nombre</label>
+                                @error('nombre')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="input-field col s12 m6">
+                                <input id="cc_telefono" type="text" name="telefono" value="{{ old('telefono') }}">
+                                <label for="cc_telefono" class="active">Telefono</label>
+                                @error('telefono')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="input-field col s12 m6">
+                                <input id="cc_fecha_nacimiento" type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}">
+                                <label for="cc_fecha_nacimiento" class="active">Fecha de nacimiento</label>
+                                @error('fecha_nacimiento')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="input-field col s12">
+                                <input id="cc_direccion" type="text" name="direccion" value="{{ old('direccion') }}">
+                                <label for="cc_direccion" class="active">Direccion</label>
+                                @error('direccion')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <a class="btn-flat modal-close">Cancelar</a>
+                <button id="cc_submit_button" class="btn" type="submit" form="form-nueva-cc">
+                    <i class="material-icons left">save</i>Crear
+                </button>
+            </div>
+        </div>
+
+        <div class="card cc-filter-card">
+            <div class="card-content">
+                <span class="card-title">Filtros</span>
+
+                <form method="GET" action="{{ route('cuentas-corrientes.index') }}">
                     <div class="row" style="margin-bottom:0;">
-                        <div class="input-field col s12 m4">
-                            <input id="cc_dni" type="text" name="dni" value="{{ old('dni') }}" required>
-                            <label for="cc_dni" class="active">DNI</label>
-                            @error('dni')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
-                            <div
-                                id="cc_dni_status"
-                                class="card-panel cc-dni-status"
-                                role="status"
-                                aria-live="polite"
-                                hidden
-                            ></div>
-                        </div>
-
-                        <div class="input-field col s12 m4">
-                            <input id="cc_apellido" type="text" name="apellido" value="{{ old('apellido') }}" required>
-                            <label for="cc_apellido" class="active">Apellido</label>
-                            @error('apellido')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
-                        </div>
-
-                        <div class="input-field col s12 m4">
-                            <input id="cc_nombre" type="text" name="nombre" value="{{ old('nombre') }}" required>
-                            <label for="cc_nombre" class="active">Nombre</label>
-                            @error('nombre')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
-                        </div>
-
                         <div class="input-field col s12 m6">
-                            <input id="cc_telefono" type="text" name="telefono" value="{{ old('telefono') }}">
-                            <label for="cc_telefono" class="active">Telefono</label>
-                            @error('telefono')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                            <input id="cc_q" type="text" name="q" value="{{ $filters['q'] }}">
+                            <label for="cc_q" class="active">Buscar (DNI / Apellido / Nombre)</label>
                         </div>
 
-                        <div class="input-field col s12 m6">
-                            <input id="cc_fecha_nacimiento" type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}">
-                            <label for="cc_fecha_nacimiento" class="active">Fecha de nacimiento</label>
-                            @error('fecha_nacimiento')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                        <div class="input-field col s12 m4">
+                            <select name="activa">
+                                <option value="1" @selected($filters['activa'] === '1')>Activas</option>
+                                <option value="0" @selected($filters['activa'] === '0')>Inactivas</option>
+                                <option value="" @selected($filters['activa'] === '')>Todas</option>
+                            </select>
+                            <label>Estado</label>
                         </div>
 
-                        <div class="input-field col s12">
-                            <input id="cc_direccion" type="text" name="direccion" value="{{ old('direccion') }}">
-                            <label for="cc_direccion" class="active">Direccion</label>
-                            @error('direccion')<div class="red-text text-darken-2" style="font-size:12px;">{{ $message }}</div>@enderror
+                        <div class="input-field col s12 m2 cc-filter-actions" style="margin-top:22px;">
+                            <button class="btn" type="submit">
+                                <i class="material-icons left">search</i>Aplicar
+                            </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
 
-        <div class="modal-footer">
-            <a class="btn-flat modal-close">Cancelar</a>
-            <button id="cc_submit_button" class="btn" type="submit" form="form-nueva-cc">
-                <i class="material-icons left">save</i>Crear
-            </button>
-        </div>
-    </div>
+        <div class="card cc-list-card">
+            <div class="card-content">
+                <span class="card-title">Listado</span>
 
-    <div class="card">
-        <div class="card-content">
-            <span class="card-title">Filtros</span>
-
-            <form method="GET" action="{{ route('cuentas-corrientes.index') }}">
-                <div class="row" style="margin-bottom:0;">
-                    <div class="input-field col s12 m6">
-                        <input id="cc_q" type="text" name="q" value="{{ $filters['q'] }}">
-                        <label for="cc_q" class="active">Buscar (DNI / Apellido / Nombre)</label>
-                    </div>
-
-                    <div class="input-field col s12 m4">
-                        <select name="activa">
-                            <option value="1" @selected($filters['activa'] === '1')>Activas</option>
-                            <option value="0" @selected($filters['activa'] === '0')>Inactivas</option>
-                            <option value="" @selected($filters['activa'] === '')>Todas</option>
-                        </select>
-                        <label>Estado</label>
-                    </div>
-
-                    <div class="input-field col s12 m2" style="margin-top:22px;">
-                        <button class="btn" type="submit">
-                            <i class="material-icons left">search</i>Aplicar
-                        </button>
-                    </div>
+                <div class="responsive-table">
+                    <table class="striped responsive-stack-table">
+                        <thead>
+                            <tr>
+                                <th>DNI</th>
+                                <th>Cliente</th>
+                                <th>Telefono</th>
+                                <th>Activa</th>
+                                <th>Vencido +30d</th>
+                                <th class="right-align">Saldo</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($cuentas as $cuenta)
+                                <tr>
+                                    <td data-label="DNI">{{ $cuenta->cliente->dni }}</td>
+                                    <td data-label="Cliente">{{ $cuenta->cliente->apellido }}, {{ $cuenta->cliente->nombre }}</td>
+                                    <td data-label="Teléfono">{{ $cuenta->cliente->telefono ?: '-' }}</td>
+                                    <td data-label="Activa">{{ $cuenta->activa ? 'Si' : 'No' }}</td>
+                                    <td data-label="Vencido +30d" class="cc-overdue-cell">
+                                        @if ($cuenta->has_overdue_30_calc)
+                                            <span class="cc-overdue-chip">{{ $money($cuenta->overdue_30_calc) }}</span>
+                                        @else
+                                            <span class="grey-text">-</span>
+                                        @endif
+                                    </td>
+                                    <td data-label="Saldo" class="right-align">{{ $money($cuenta->saldo_calc) }}</td>
+                                    <td data-label="Acciones" class="right-align">
+                                        <div class="cc-table-actions">
+                                            <a
+                                                class="cc-action-button"
+                                                href="{{ route('cuentas-corrientes.payments.create', $cuenta) }}"
+                                                title="Registrar pago"
+                                                aria-label="Registrar pago"
+                                            >
+                                                <i class="material-icons">payments</i>
+                                                <span class="cc-action-button-label">Pago</span>
+                                            </a>
+                                            <a
+                                                class="cc-action-button"
+                                                href="{{ route('cuentas-corrientes.show', $cuenta) }}"
+                                                title="Ver cuenta"
+                                                aria-label="Ver cuenta"
+                                            >
+                                                <i class="material-icons">visibility</i>
+                                                <span class="cc-action-button-label">Detalle</span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="grey-text">Sin resultados.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-content">
-            <span class="card-title">Listado</span>
-
-            <div class="responsive-table">
-                <table class="striped">
-                    <thead>
-                        <tr>
-                            <th>DNI</th>
-                            <th>Cliente</th>
-                            <th>Telefono</th>
-                            <th>Activa</th>
-                            <th>Vencido +30d</th>
-                            <th class="right-align">Saldo</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($cuentas as $cuenta)
-                            <tr>
-                                <td>{{ $cuenta->cliente->dni }}</td>
-                                <td>{{ $cuenta->cliente->apellido }}, {{ $cuenta->cliente->nombre }}</td>
-                                <td>{{ $cuenta->cliente->telefono ?: '-' }}</td>
-                                <td>{{ $cuenta->activa ? 'Si' : 'No' }}</td>
-                                <td class="cc-overdue-cell">
-                                    @if ($cuenta->has_overdue_30_calc)
-                                        <span class="cc-overdue-chip">{{ $money($cuenta->overdue_30_calc) }}</span>
-                                    @else
-                                        <span class="grey-text">-</span>
-                                    @endif
-                                </td>
-                                <td class="right-align">{{ $money($cuenta->saldo_calc) }}</td>
-                                <td class="right-align">
-                                    <div class="cc-table-actions">
-                                        <a
-                                            class="cc-action-button"
-                                            href="{{ route('cuentas-corrientes.payments.create', $cuenta) }}"
-                                            title="Registrar pago"
-                                            aria-label="Registrar pago"
-                                        >
-                                            <i class="material-icons">payments</i>
-                                        </a>
-                                        <a
-                                            class="cc-action-button"
-                                            href="{{ route('cuentas-corrientes.show', $cuenta) }}"
-                                            title="Ver cuenta"
-                                            aria-label="Ver cuenta"
-                                        >
-                                            <i class="material-icons">visibility</i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="grey-text">Sin resultados.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>

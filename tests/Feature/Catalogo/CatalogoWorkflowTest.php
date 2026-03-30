@@ -170,4 +170,73 @@ class CatalogoWorkflowTest extends TestCase
         ]);
         $this->assertSame(7, StockSucursal::query()->first()->cantidad);
     }
+
+    public function test_catalog_views_render_mobile_friendly_table_markers(): void
+    {
+        $user = User::factory()->create();
+        $categoria = Categoria::query()->create([
+            'nombre' => 'Pantalones',
+            'activa' => true,
+        ]);
+        $producto = Producto::query()->create([
+            'nombre' => 'Jean Mom',
+            'categoria_id' => $categoria->id,
+            'activo' => true,
+            'precio_base' => '21999.00',
+            'costo_base' => '14000.00',
+        ]);
+        $variante = Variante::query()->create([
+            'producto_id' => $producto->id,
+            'sku' => 'JEAN-AZU-38',
+            'precio' => '23999.00',
+            'costo' => '15000.00',
+            'activo' => true,
+        ]);
+
+        app(CatalogoManager::class)->syncVariantAttributes($variante, '38', 'Azul');
+
+        $this->actingAs($user)
+            ->get(route('catalogo.index', ['tab' => 'categorias']))
+            ->assertOk()
+            ->assertSee('catalog-stack-table', false)
+            ->assertSee('data-label="Productos"', false);
+
+        $this->actingAs($user)
+            ->get(route('catalogo.productos.panel', $producto))
+            ->assertOk()
+            ->assertSee('catalog-stack-table', false)
+            ->assertSee('data-label="Stock total"', false);
+    }
+
+    public function test_variant_edit_modal_prefills_prices_from_requested_row_values(): void
+    {
+        $user = User::factory()->create();
+        $producto = Producto::query()->create([
+            'nombre' => 'Camisa Oxford',
+            'activo' => true,
+            'precio_base' => '18000.00',
+            'costo_base' => '11000.00',
+        ]);
+        $variante = Variante::query()->create([
+            'producto_id' => $producto->id,
+            'sku' => 'CAM-OXF-M',
+            'precio' => '21000.00',
+            'costo' => '12000.00',
+            'activo' => true,
+        ]);
+
+        app(CatalogoManager::class)->syncVariantAttributes($variante, 'M', 'Celeste');
+
+        $this->actingAs($user)
+            ->withHeaders(['HX-Request' => 'true'])
+            ->get(route('catalogo.variantes.edit', [
+                'variante' => $variante,
+                'selected_product_id' => $producto->id,
+                'precio' => '24500.00',
+                'costo' => '13250.00',
+            ]))
+            ->assertOk()
+            ->assertSee('name="precio" value="24500.00"', false)
+            ->assertSee('name="costo" value="13250.00"', false);
+    }
 }

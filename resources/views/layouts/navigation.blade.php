@@ -264,6 +264,55 @@
             display: none;
         }
     }
+
+    @media (max-width: 480px) {
+        .sys-nav-shell {
+            padding: 0 0.875rem;
+        }
+
+        .sys-nav-row {
+            min-height: 3.5rem;
+            gap: 0.875rem;
+        }
+
+        .sys-nav-left {
+            min-width: 0;
+            gap: 0.875rem;
+            flex: 1 1 auto;
+        }
+
+        .sys-nav-brand {
+            min-width: 0;
+            max-width: calc(100% - 3rem);
+        }
+
+        .sys-nav-brand-mark {
+            width: 2rem;
+            height: 2rem;
+            padding: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .sys-nav-brand-copy {
+            min-width: 0;
+        }
+
+        .sys-nav-brand-name {
+            font-size: 0.875rem;
+            letter-spacing: 0.08em;
+        }
+
+        .sys-nav-brand-caption {
+            font-size: 0.5625rem;
+            letter-spacing: 0.12em;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .sys-nav-brand-caption {
+            display: none;
+        }
+    }
 </style>
 
 <nav x-data="{ open: false }" class="sys-nav">

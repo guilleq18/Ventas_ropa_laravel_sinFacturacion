@@ -40,6 +40,7 @@ class AdminPanelWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee($fixture['venta']->codigo_sucursal)
             ->assertSee('Credito')
+            ->assertSee('data-label="Total"', false)
             ->assertSee(route('caja.ticket', $fixture['venta']).'?print=1');
 
         $this->actingAs($user)
@@ -48,6 +49,7 @@ class AdminPanelWorkflowTest extends TestCase
             ->assertSee('Campera Nevada')
             ->assertSee('VISA')
             ->assertSee('Credito')
+            ->assertSee('data-label="Subtotal"', false)
             ->assertSee(route('caja.ticket', $fixture['venta']).'?print=1');
 
         $this->actingAs($user)
@@ -139,6 +141,11 @@ class AdminPanelWorkflowTest extends TestCase
             'telefono' => '3510000000',
             'activa' => false,
         ]);
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.empresa.index', ['tab' => 'sucursales']))
+            ->assertOk()
+            ->assertSee('data-label="Teléfono"', false);
     }
 
     public function test_card_plans_can_be_created_updated_and_deleted(): void
@@ -200,7 +207,8 @@ class AdminPanelWorkflowTest extends TestCase
         $this->actingAs($user)
             ->get(route('admin-panel.users.index', ['tab' => 'roles']))
             ->assertOk()
-            ->assertSee('Crear rol');
+            ->assertSee('Crear rol')
+            ->assertSee('responsive-stack-table', false);
 
         $this->actingAs($user)
             ->post(route('admin-panel.roles.store'), [
@@ -212,6 +220,11 @@ class AdminPanelWorkflowTest extends TestCase
         $role = Role::query()->where('name', 'encargado')->firstOrFail();
 
         $this->assertCount(3, $role->permissions);
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.users.index', ['tab' => 'roles']))
+            ->assertOk()
+            ->assertSee('data-label="Permisos"', false);
 
         $this->actingAs($user)
             ->post(route('admin-panel.users.store'), [

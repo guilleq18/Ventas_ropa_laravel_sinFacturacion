@@ -26,7 +26,7 @@
     </div>
 
     <div class="catalog-table-wrap">
-        <table class="catalog-table catalog-table-variants">
+        <table class="catalog-table catalog-table-variants catalog-stack-table">
             <thead>
                 <tr>
                     <th>SKU</th>
@@ -42,25 +42,25 @@
             <tbody>
                 @forelse ($selectedVariants as $item)
                     <tr>
-                        <td><span class="catalog-code">{{ $item['variante']->sku }}</span></td>
-                        <td>
+                        <td data-label="SKU"><span class="catalog-code">{{ $item['variante']->sku }}</span></td>
+                        <td data-label="EAN">
                             <span class="catalog-code is-muted">
                                 {{ $item['variante']->codigo_barras ?: 'Sin EAN' }}
                             </span>
                         </td>
-                        <td>{{ $item['color'] }}</td>
-                        <td><strong>{{ $item['talle'] }}</strong></td>
-                        <td class="is-right">
+                        <td data-label="Color">{{ $item['color'] }}</td>
+                        <td data-label="Talle"><strong>{{ $item['talle'] }}</strong></td>
+                        <td data-label="Precio" class="is-right">
                             <span class="catalog-money">
                                 ${{ number_format((float) $item['variante']->precio, 2, ',', '.') }}
                             </span>
                         </td>
-                        <td class="is-right">
+                        <td data-label="Costo" class="is-right">
                             <span class="catalog-money">
                                 ${{ number_format((float) $item['variante']->costo, 2, ',', '.') }}
                             </span>
                         </td>
-                        <td class="is-right">
+                        <td data-label="Stock total" class="is-right">
                             <button
                                 type="button"
                                 style="border: 0; background: transparent; padding: 0; cursor: pointer;"
@@ -72,13 +72,17 @@
                                 <span class="catalog-stock-pill">{{ $item['stock_total'] }}</span>
                             </button>
                         </td>
-                        <td class="is-right">
+                        <td data-label="Acciones" class="is-right">
                             <div class="catalog-list-actions" style="justify-content: flex-end;">
                                 <a
                                     href="javascript:void(0)"
                                     class="catalog-icon-btn"
                                     title="Editar variante"
-                                    hx-get="{{ route('catalogo.variantes.edit', $item['variante']) }}"
+                                    hx-get="{{ route('catalogo.variantes.edit', [
+                                        'variante' => $item['variante'],
+                                        'precio' => number_format((float) $item['variante']->precio, 2, '.', ''),
+                                        'costo' => number_format((float) $item['variante']->costo, 2, '.', ''),
+                                    ]) }}"
                                     hx-target="#catalog_form_modal_body"
                                     hx-swap="outerHTML"
                                     hx-include="#selected_product_id"
@@ -88,6 +92,7 @@
                                         <path d="M12 20h9"/>
                                         <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/>
                                     </svg>
+                                    <span class="catalog-action-copy">Editar</span>
                                 </a>
 
                                 <form method="POST" action="{{ route('catalogo.variantes.destroy', $item['variante']) }}">
@@ -106,6 +111,7 @@
                                             <path d="M10 11v6"/>
                                             <path d="M14 11v6"/>
                                         </svg>
+                                        <span class="catalog-action-copy">Eliminar</span>
                                     </button>
                                 </form>
                             </div>

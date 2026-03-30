@@ -37,6 +37,9 @@
             margin-top: 4px;
             line-height: 1.25;
         }
+        #tarjetas_table {
+            min-width: 720px;
+        }
         #tarjetas_table td input[type="text"],
         #tarjetas_table td input[type="number"] {
             height: 40px !important;
@@ -128,71 +131,73 @@
             </div>
 
             @if ($plans->isNotEmpty())
-                <table id="tarjetas_table" class="striped responsive-table" style="font-size:13px;">
-                    <thead>
-                        <tr>
-                            <th>Tarjeta</th>
-                            <th>Cuotas</th>
-                            <th>Recargo %</th>
-                            <th>Activo</th>
-                            <th class="right-align">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($plans as $plan)
-                            @php
-                                $rowContext = 'plan_update_' . $plan->id;
-                                $rowHasErrors = old('form_context') === $rowContext;
-                            @endphp
+                <div class="table-wrap">
+                    <table id="tarjetas_table" class="striped" style="font-size:13px;">
+                        <thead>
                             <tr>
-                                <td style="min-width:180px;">
-                                    <form id="plan_update_{{ $plan->id }}" method="POST" action="{{ route('admin-panel.tarjetas.update', $plan) }}" style="display:none;">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="form_context" value="{{ $rowContext }}">
-                                        <input type="hidden" name="q_context" value="{{ $search }}">
-                                        <input type="hidden" name="activo" value="0">
-                                    </form>
-                                    <input type="text" name="tarjeta" form="plan_update_{{ $plan->id }}" value="{{ $rowHasErrors ? old('tarjeta') : $plan->tarjeta }}" maxlength="30" required style="margin:0; height:2rem;">
-                                    @if ($rowHasErrors)
-                                        @error('tarjeta')<div class="table-field-error">{{ $message }}</div>@enderror
-                                    @endif
-                                </td>
-                                <td style="width:110px;">
-                                    <input type="number" name="cuotas" form="plan_update_{{ $plan->id }}" min="1" value="{{ $rowHasErrors ? old('cuotas') : $plan->cuotas }}" required style="margin:0; height:2rem;">
-                                    @if ($rowHasErrors)
-                                        @error('cuotas')<div class="table-field-error">{{ $message }}</div>@enderror
-                                    @endif
-                                </td>
-                                <td style="width:140px;">
-                                    <input type="number" name="recargo_pct" form="plan_update_{{ $plan->id }}" step="0.01" min="0" value="{{ $rowHasErrors ? old('recargo_pct') : number_format((float) $plan->recargo_pct, 2, '.', '') }}" required style="margin:0; height:2rem;">
-                                    @if ($rowHasErrors)
-                                        @error('recargo_pct')<div class="table-field-error">{{ $message }}</div>@enderror
-                                    @endif
-                                </td>
-                                <td style="width:90px;">
-                                    <label>
-                                        <input type="checkbox" name="activo" value="1" form="plan_update_{{ $plan->id }}" @checked($rowHasErrors ? old('activo') : $plan->activo)>
-                                        <span></span>
-                                    </label>
-                                </td>
-                                <td class="right-align" style="white-space:nowrap;">
-                                    <button class="btn-small blue" type="submit" form="plan_update_{{ $plan->id }}" title="Guardar" aria-label="Guardar">
-                                        <i class="material-icons">save</i>
-                                    </button>
-                                    <form method="POST" action="{{ route('admin-panel.tarjetas.destroy', $plan) }}" style="display:inline-block; margin-left:6px;" onsubmit="return confirm('¿Eliminar este plan?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <input type="hidden" name="q_context" value="{{ $search }}">
-                                        <button class="btn-small red" type="submit" title="Eliminar" aria-label="Eliminar">
-                                            <i class="material-icons">delete</i>
-                                        </button>
-                                    </form>
-                                </td>
+                                <th>Tarjeta</th>
+                                <th>Cuotas</th>
+                                <th>Recargo %</th>
+                                <th>Activo</th>
+                                <th class="right-align">Acciones</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach ($plans as $plan)
+                                @php
+                                    $rowContext = 'plan_update_' . $plan->id;
+                                    $rowHasErrors = old('form_context') === $rowContext;
+                                @endphp
+                                <tr>
+                                    <td style="min-width:180px;">
+                                        <form id="plan_update_{{ $plan->id }}" method="POST" action="{{ route('admin-panel.tarjetas.update', $plan) }}" style="display:none;">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="form_context" value="{{ $rowContext }}">
+                                            <input type="hidden" name="q_context" value="{{ $search }}">
+                                            <input type="hidden" name="activo" value="0">
+                                        </form>
+                                        <input type="text" name="tarjeta" form="plan_update_{{ $plan->id }}" value="{{ $rowHasErrors ? old('tarjeta') : $plan->tarjeta }}" maxlength="30" required style="margin:0; height:2rem;">
+                                        @if ($rowHasErrors)
+                                            @error('tarjeta')<div class="table-field-error">{{ $message }}</div>@enderror
+                                        @endif
+                                    </td>
+                                    <td style="width:110px;">
+                                        <input type="number" name="cuotas" form="plan_update_{{ $plan->id }}" min="1" value="{{ $rowHasErrors ? old('cuotas') : $plan->cuotas }}" required style="margin:0; height:2rem;">
+                                        @if ($rowHasErrors)
+                                            @error('cuotas')<div class="table-field-error">{{ $message }}</div>@enderror
+                                        @endif
+                                    </td>
+                                    <td style="width:140px;">
+                                        <input type="number" name="recargo_pct" form="plan_update_{{ $plan->id }}" step="0.01" min="0" value="{{ $rowHasErrors ? old('recargo_pct') : number_format((float) $plan->recargo_pct, 2, '.', '') }}" required style="margin:0; height:2rem;">
+                                        @if ($rowHasErrors)
+                                            @error('recargo_pct')<div class="table-field-error">{{ $message }}</div>@enderror
+                                        @endif
+                                    </td>
+                                    <td style="width:90px;">
+                                        <label>
+                                            <input type="checkbox" name="activo" value="1" form="plan_update_{{ $plan->id }}" @checked($rowHasErrors ? old('activo') : $plan->activo)>
+                                            <span></span>
+                                        </label>
+                                    </td>
+                                    <td class="right-align" style="white-space:nowrap;">
+                                        <button class="btn-small blue" type="submit" form="plan_update_{{ $plan->id }}" title="Guardar" aria-label="Guardar">
+                                            <i class="material-icons">save</i>
+                                        </button>
+                                        <form method="POST" action="{{ route('admin-panel.tarjetas.destroy', $plan) }}" style="display:inline-block; margin-left:6px;" onsubmit="return confirm('¿Eliminar este plan?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="q_context" value="{{ $search }}">
+                                            <button class="btn-small red" type="submit" title="Eliminar" aria-label="Eliminar">
+                                                <i class="material-icons">delete</i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
                 <p id="tarjetas_filter_empty" class="grey-text" style="display:none; margin-top:12px;">
                     No se encontraron tarjetas para esa búsqueda.
                 </p>
@@ -202,7 +207,7 @@
         </div>
     </div>
 
-    <div id="plan_create_modal" class="modal" @if ($createModalOpen) data-auto-open="true" @endif>
+    <div id="plan_create_modal" class="modal modal-fixed-footer" @if ($createModalOpen) data-auto-open="true" @endif>
         <div class="modal-content">
             <div class="admin-modal-head">
                 <h5 class="admin-modal-title">Agregar plan de tarjeta</h5>

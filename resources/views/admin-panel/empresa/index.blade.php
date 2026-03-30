@@ -134,7 +134,7 @@
                         <div class="soft-panel">
                             <h6>Sucursales creadas</h6>
                             <div class="table-wrap">
-                                <table class="striped compact-table">
+                                <table class="striped compact-table responsive-stack-table">
                                     <thead>
                                         <tr>
                                             <th>Nombre</th>
@@ -147,17 +147,17 @@
                                     <tbody>
                                         @forelse ($branches as $branch)
                                             <tr>
-                                                <td style="font-weight:600;">{{ $branch->nombre }}</td>
-                                                <td>{{ $branch->direccion ?: '-' }}</td>
-                                                <td>{{ $branch->telefono ?: '-' }}</td>
-                                                <td>
+                                                <td data-label="Nombre" style="font-weight:600;">{{ $branch->nombre }}</td>
+                                                <td data-label="Dirección">{{ $branch->direccion ?: '-' }}</td>
+                                                <td data-label="Teléfono">{{ $branch->telefono ?: '-' }}</td>
+                                                <td data-label="Estado">
                                                     @if ($branch->activa)
                                                         <span class="status-chip active">Activa</span>
                                                     @else
                                                         <span class="status-chip inactive">Inactiva</span>
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td data-label="Acciones">
                                                     <div class="actions-cell">
                                                         <a href="{{ route('admin-panel.empresa.index', ['tab' => 'sucursales', 'edit_sucursal' => $branch->id]) }}" class="icon-btn waves-effect" title="Editar sucursal">
                                                             <i class="material-icons">edit</i>

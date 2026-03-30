@@ -92,7 +92,7 @@ class VarianteController extends Controller
     public function edit(Request $request, Variante $variante, CatalogoManager $manager): View
     {
         $variante->load('producto');
-        $values = $this->variantValues($variante, $manager);
+        $values = $this->variantValues($variante, $manager, $request);
 
         if (! $this->isHtmx($request)) {
             return view('catalogo.variante-form', [

@@ -43,7 +43,7 @@
                     <span class="card-title">Pagos</span>
 
                     <div class="responsive-table">
-                        <table class="striped">
+                        <table class="striped responsive-stack-table">
                             <thead>
                                 <tr>
                                     <th>Tipo</th>
@@ -56,8 +56,8 @@
                             <tbody>
                                 @forelse ($pagos as $pago)
                                     <tr>
-                                        <td><strong>{{ $pago->tipo ?: '—' }}</strong></td>
-                                        <td>
+                                        <td data-label="Tipo"><strong>{{ $pago->tipo ?: '—' }}</strong></td>
+                                        <td data-label="Detalle">
                                             @if ($pago->tipo === \App\Domain\Ventas\Models\VentaPago::TIPO_CREDITO)
                                                 <div class="grey-text" style="font-size:.85rem;">
                                                     @if ($pago->plan?->tarjeta)
@@ -74,9 +74,9 @@
                                                 <span class="grey-text">—</span>
                                             @endif
                                         </td>
-                                        <td class="right-align">{{ $money($pago->monto) }}</td>
-                                        <td class="right-align">{{ $money($pago->recargo_monto_safe) }}</td>
-                                        <td class="right-align"><strong>{{ $money($pago->total_pago_admin) }}</strong></td>
+                                        <td data-label="Base" class="right-align">{{ $money($pago->monto) }}</td>
+                                        <td data-label="Recargo" class="right-align">{{ $money($pago->recargo_monto_safe) }}</td>
+                                        <td data-label="Total" class="right-align"><strong>{{ $money($pago->total_pago_admin) }}</strong></td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -103,7 +103,7 @@
                     <span class="card-title">Ítems</span>
 
                     <div class="responsive-table">
-                        <table class="striped">
+                        <table class="striped responsive-stack-table">
                             <thead>
                                 <tr>
                                     <th>SKU</th>
@@ -116,11 +116,11 @@
                             <tbody>
                                 @forelse ($items as $item)
                                     <tr>
-                                        <td>{{ $item->variante?->sku ?? '-' }}</td>
-                                        <td>{{ $item->nombre_admin }}</td>
-                                        <td class="right-align">{{ $item->cantidad }}</td>
-                                        <td class="right-align">{{ $money($item->precio_unitario) }}</td>
-                                        <td class="right-align">{{ $money($item->subtotal) }}</td>
+                                        <td data-label="SKU">{{ $item->variante?->sku ?? '-' }}</td>
+                                        <td data-label="Producto">{{ $item->nombre_admin }}</td>
+                                        <td data-label="Cant." class="right-align">{{ $item->cantidad }}</td>
+                                        <td data-label="Precio" class="right-align">{{ $money($item->precio_unitario) }}</td>
+                                        <td data-label="Subtotal" class="right-align">{{ $money($item->subtotal) }}</td>
                                     </tr>
                                 @empty
                                     <tr>

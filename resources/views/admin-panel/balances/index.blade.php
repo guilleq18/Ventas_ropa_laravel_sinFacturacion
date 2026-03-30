@@ -269,23 +269,25 @@
 
             const rows = labels.map((label, index) => (
                 `<tr>
-                    <td style="padding:6px 8px;">${label}</td>
-                    <td class="right-align" style="padding:6px 8px;">${fmtMoney(montos[index])}</td>
-                    <td class="right-align" style="padding:6px 8px;">${Number(cantidades[index] || 0)}</td>
+                    <td data-label="Nombre" style="padding:6px 8px;">${label}</td>
+                    <td data-label="Monto" class="right-align" style="padding:6px 8px;">${fmtMoney(montos[index])}</td>
+                    <td data-label="${qtyLabel}" class="right-align" style="padding:6px 8px;">${Number(cantidades[index] || 0)}</td>
                 </tr>`
             )).join('');
 
             container.innerHTML = `
-                <table class="striped responsive-table" style="font-size:12px;">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th class="right-align">Monto</th>
-                            <th class="right-align">${qtyLabel}</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
+                <div class="responsive-table">
+                    <table class="striped responsive-stack-table" style="font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th class="right-align">Monto</th>
+                                <th class="right-align">${qtyLabel}</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
             `;
         }
 

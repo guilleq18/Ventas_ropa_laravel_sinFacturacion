@@ -88,6 +88,48 @@ class CajaPosWorkflowTest extends TestCase
         $this->assertSame('150.00', $cart[(string) $variant->id]['precio']);
     }
 
+    public function test_payment_modal_renders_new_payment_rows_ready_for_editing(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+        $variant = $this->createVariantFixture($branch, '100.00', 5);
+
+        $this->actingAs($user)->post(route('caja.abrir'));
+        $this->actingAs($user)->post(route('caja.carrito.agregar', $variant));
+
+        $this->actingAs($user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->withHeader('Accept', 'application/json')
+            ->post(route('caja.pagos.agregar'))
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'message' => 'Se agrego una nueva linea de pago.',
+            ]);
+
+        $payments = $this->app['session.store']->get('pos_payments', []);
+
+        $this->assertCount(1, $payments);
+
+        $this->actingAs($user)
+            ->get(route('caja.pos', ['modal' => 'pagos']))
+            ->assertOk()
+            ->assertSee(route('caja.pagos.update', 0), false)
+            ->assertSee('class="payment-row-card"', false)
+            ->assertSee('name="monto" value="0.00"', false);
+    }
+
+    public function test_payment_modal_keeps_add_button_visible_when_cart_is_empty(): void
+    {
+        [$user] = $this->createCashierWithBranch();
+
+        $this->actingAs($user)
+            ->get(route('caja.pos', ['modal' => 'pagos']))
+            ->assertOk()
+            ->assertSee('data-payment-action="add"', false)
+            ->assertSee('title="Agrega productos al carrito para habilitar pagos."', false)
+            ->assertSee('disabled', false);
+    }
+
     public function test_confirming_sale_persists_sale_stock_and_current_account_movement(): void
     {
         [$user, $branch] = $this->createCashierWithBranch();
@@ -204,7 +246,8 @@ class CajaPosWorkflowTest extends TestCase
             ->get(route('caja.pos'))
             ->assertOk()
             ->assertSee(route('caja.ticket', $sale))
-            ->assertSee(route('caja.ticket', $sale).'?print=1');
+            ->assertSee(route('caja.ticket', $sale).'?print=1')
+            ->assertSee('data-label="Subtotal"', false);
 
         $this->actingAs($user)
             ->post(route('caja.confirmar'), [

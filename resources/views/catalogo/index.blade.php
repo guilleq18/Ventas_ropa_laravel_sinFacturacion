@@ -466,6 +466,11 @@
 
         .catalog-table-wrap {
             overflow: auto;
+            max-width: 100%;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(107, 114, 128, 0.28) transparent;
         }
 
         .catalog-table {
@@ -601,6 +606,10 @@
             gap: 6px;
         }
 
+        .catalog-action-copy {
+            display: none;
+        }
+
         .catalog-code.is-muted {
             color: #667085;
             font-weight: 600;
@@ -711,6 +720,9 @@
             background: linear-gradient(180deg, #dbe3eb 0%, #d6dee7 100%);
             box-shadow: 0 28px 56px rgba(15, 23, 42, 0.24);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: min(calc(100dvh - 56px), 920px);
         }
 
         .catalog-modal-head {
@@ -722,6 +734,7 @@
             padding: 16px 22px 10px;
             background: linear-gradient(180deg, #fbfcfe 0%, #eef3f8 100%);
             border-bottom: 1px solid var(--pos-divider);
+            flex-shrink: 0;
         }
 
         .catalog-modal-copy {
@@ -777,6 +790,10 @@
 
         .catalog-modal-body {
             padding: 12px 18px 18px;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .catalog-modal-toolbar {
@@ -1217,6 +1234,189 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
+
+        @media (max-width: 720px) {
+            .catalog-stack-table {
+                border-spacing: 0;
+                min-width: 0;
+            }
+
+            .catalog-stack-table.catalog-table-variants {
+                table-layout: auto;
+            }
+
+            .catalog-stack-table.catalog-table-variants th,
+            .catalog-stack-table.catalog-table-variants td {
+                width: auto !important;
+                min-width: 0 !important;
+                white-space: normal;
+            }
+
+            .catalog-stack-table thead {
+                display: none;
+            }
+
+            .catalog-stack-table tbody,
+            .catalog-stack-table tr,
+            .catalog-stack-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .catalog-stack-table tbody {
+                display: grid;
+                gap: 12px;
+            }
+
+            .catalog-stack-table tbody tr {
+                padding: 14px 16px;
+                border: 1px solid var(--pos-soft-border);
+                border-radius: 20px;
+                background: linear-gradient(180deg, #ffffff 0%, #f3f8fc 100%);
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+                    0 8px 18px rgba(15, 23, 42, 0.06);
+            }
+
+            .catalog-stack-table tbody td {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 8px 0;
+                border: none;
+                border-radius: 0;
+                background: transparent;
+                text-align: left !important;
+            }
+
+            .catalog-stack-table tbody td > * {
+                min-width: 0;
+            }
+
+            .catalog-stack-table tbody td::before {
+                content: attr(data-label);
+                flex: 0 0 108px;
+                max-width: 45%;
+                color: #667085;
+                font-size: 0.72rem;
+                font-weight: 800;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+                line-height: 1.4;
+            }
+
+            .catalog-stack-table tbody td.catalog-empty,
+            .catalog-stack-table tbody td[colspan] {
+                display: block;
+                text-align: center !important;
+                padding: 4px 0;
+            }
+
+            .catalog-stack-table tbody td.catalog-empty::before,
+            .catalog-stack-table tbody td[colspan]::before {
+                display: none;
+            }
+
+            .catalog-stack-table .is-right {
+                justify-content: space-between;
+                text-align: left !important;
+            }
+
+            .catalog-table-variants .catalog-code,
+            .catalog-table-variants .catalog-money {
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .catalog-table-variants td[data-label="Acciones"] {
+                align-items: stretch;
+                justify-content: flex-start;
+            }
+
+            .catalog-table-variants td[data-label="Acciones"] .catalog-list-actions {
+                flex: 1 1 auto;
+                min-width: 0;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .catalog-table-variants td[data-label="Acciones"] .catalog-icon-btn,
+            .catalog-table-variants td[data-label="Acciones"] form .catalog-icon-btn {
+                width: 100%;
+                min-height: 40px;
+                height: auto;
+                padding: 0 12px;
+                border-radius: 14px;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .catalog-table-variants td[data-label="Acciones"] form {
+                display: contents;
+            }
+
+            .catalog-table-variants td[data-label="Acciones"] .catalog-icon-btn svg {
+                flex-shrink: 0;
+            }
+
+            .catalog-table-variants td[data-label="Acciones"] .catalog-action-copy {
+                display: inline;
+                font-size: 0.78rem;
+                font-weight: 800;
+                line-height: 1;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .catalog-table-variants td[data-label="Acciones"] .catalog-list-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .catalog-list-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .catalog-list-actions,
+            .catalog-panel-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .catalog-panel-actions .catalog-btn,
+            .catalog-tab-btns .catalog-tab-btn {
+                width: 100%;
+            }
+
+            .catalog-modal {
+                padding: 10px 8px;
+            }
+
+            .catalog-modal-dialog {
+                width: min(100vw - 16px, 1180px);
+            }
+
+            .catalog-modal-card {
+                max-height: calc(100dvh - 16px);
+                border-radius: 24px;
+            }
+
+            .catalog-modal-head {
+                padding: 12px 14px 10px;
+            }
+
+            .catalog-modal-body {
+                padding: 10px 14px 14px;
+            }
+
+            .catalog-modal-preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
     <div class="catalog-wrap">
@@ -1396,7 +1596,7 @@
 
                         <div class="catalog-card-body">
                             <div class="catalog-table-wrap">
-                                <table class="catalog-table">
+                                <table class="catalog-table catalog-stack-table">
                                     <thead>
                                         <tr>
                                             <th>Nombre</th>
@@ -1408,14 +1608,14 @@
                                     <tbody>
                                         @forelse ($categorias as $categoria)
                                             <tr>
-                                                <td><strong>{{ $categoria->nombre }}</strong></td>
-                                                <td>{{ $categoria->productos_count }}</td>
-                                                <td>
+                                                <td data-label="Nombre"><strong>{{ $categoria->nombre }}</strong></td>
+                                                <td data-label="Productos">{{ $categoria->productos_count }}</td>
+                                                <td data-label="Estado">
                                                     <span class="catalog-badge {{ $categoria->activa ? 'catalog-badge-success' : 'catalog-badge-danger' }}">
                                                         {{ $categoria->activa ? 'Activa' : 'Inactiva' }}
                                                     </span>
                                                 </td>
-                                                <td class="is-right">
+                                                <td data-label="Acciones" class="is-right">
                                                     <div class="catalog-list-actions" style="justify-content: flex-end;">
                                                         <a
                                                             href="{{ route('catalogo.index', ['tab' => 'categorias', 'edit_categoria' => $categoria->id]) }}"

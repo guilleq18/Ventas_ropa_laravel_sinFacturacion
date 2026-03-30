@@ -50,7 +50,7 @@
                     </div>
                 </div>
 
-                <div style="display:flex; gap:10px; align-items:center;">
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                     <button class="btn" type="submit">
                         <i class="material-icons left">search</i>Aplicar
                     </button>
@@ -65,7 +65,7 @@
             <span class="card-title">Resultados</span>
 
             <div class="responsive-table">
-                <table class="striped">
+                <table class="striped responsive-stack-table">
                     <thead>
                         <tr>
                             <th>Código</th>
@@ -80,17 +80,19 @@
                     <tbody>
                         @forelse ($sales as $venta)
                             <tr>
-                                <td>{{ $venta->codigo_sucursal }}</td>
-                                <td>{{ $venta->fecha?->format('d/m/Y') ?? '-' }}</td>
-                                <td>{{ $venta->sucursal?->nombre ?? '-' }}</td>
-                                <td>{{ $estados[$venta->estado] ?? $venta->estado }}</td>
-                                <td>{{ $venta->medio_pago_ui }}</td>
-                                <td class="right-align">{{ $money($venta->total) }}</td>
-                                <td class="right-align">
-                                    <a class="btn-small" href="{{ route('admin-panel.ventas.show', $venta) }}">Ver</a>
-                                    @if ($venta->estado === \App\Domain\Ventas\Models\Venta::ESTADO_CONFIRMADA)
-                                        <a class="btn-small grey lighten-1 black-text" href="{{ route('caja.ticket', $venta) }}?print=1" target="_blank" rel="noopener">Ticket</a>
-                                    @endif
+                                <td data-label="Código">{{ $venta->codigo_sucursal }}</td>
+                                <td data-label="Fecha">{{ $venta->fecha?->format('d/m/Y') ?? '-' }}</td>
+                                <td data-label="Sucursal">{{ $venta->sucursal?->nombre ?? '-' }}</td>
+                                <td data-label="Estado">{{ $estados[$venta->estado] ?? $venta->estado }}</td>
+                                <td data-label="Medio">{{ $venta->medio_pago_ui }}</td>
+                                <td data-label="Total" class="right-align">{{ $money($venta->total) }}</td>
+                                <td data-label="Acciones" class="right-align">
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                                        <a class="btn-small" href="{{ route('admin-panel.ventas.show', $venta) }}">Ver</a>
+                                        @if ($venta->estado === \App\Domain\Ventas\Models\Venta::ESTADO_CONFIRMADA)
+                                            <a class="btn-small grey lighten-1 black-text" href="{{ route('caja.ticket', $venta) }}?print=1" target="_blank" rel="noopener">Ticket</a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty

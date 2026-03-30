@@ -212,7 +212,7 @@
             display: flex;
             align-items: center;
             gap: 18px;
-            flex: 0 0 auto;
+            flex: 1 1 auto;
         }
 
         .app-nav-brand {
@@ -221,7 +221,9 @@
             gap: 10px;
             text-decoration: none;
             color: #f8fafc;
-            flex: 0 0 auto;
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .app-nav-brand:hover {
@@ -235,6 +237,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
             border: 1px solid rgba(255, 255, 255, 0.14);
             color: #f8fafc;
@@ -418,6 +421,7 @@
             align-items: center;
             justify-content: center;
             margin: 0;
+            flex-shrink: 0;
         }
 
         .app-nav .nav-mobile-trigger:hover,
@@ -450,6 +454,44 @@
             }
 
             .app-nav-right {
+                display: none;
+            }
+        }
+
+        @media only screen and (max-width: 600px) {
+            .app-nav .nav-wrapper {
+                min-height: 58px;
+            }
+
+            .app-nav .nav-wrapper.container {
+                padding: 0 12px;
+            }
+
+            .app-nav-left {
+                gap: 12px;
+            }
+
+            .app-nav-brand-mark {
+                width: 32px;
+                height: 32px;
+                border-radius: 9px;
+                padding: 4px;
+            }
+
+            .app-nav-brand-name {
+                font-size: 13px;
+                letter-spacing: 0.08em;
+            }
+
+            .app-nav-brand-caption {
+                max-width: 140px;
+                font-size: 9px;
+                letter-spacing: 0.12em;
+            }
+        }
+
+        @media only screen and (max-width: 420px) {
+            .app-nav-brand-caption {
                 display: none;
             }
         }
@@ -831,6 +873,32 @@
         .table-wrap,
         .responsive-table {
             overflow: auto;
+            max-width: 100%;
+            padding-bottom: 2px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(107, 114, 128, 0.32) transparent;
+            scrollbar-gutter: stable both-edges;
+        }
+
+        .admin-table-wrap::-webkit-scrollbar,
+        .table-wrap::-webkit-scrollbar,
+        .responsive-table::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+
+        .admin-table-wrap::-webkit-scrollbar-thumb,
+        .table-wrap::-webkit-scrollbar-thumb,
+        .responsive-table::-webkit-scrollbar-thumb {
+            background: rgba(107, 114, 128, 0.28);
+            border-radius: 999px;
+        }
+
+        .admin-table-wrap::-webkit-scrollbar-track,
+        .table-wrap::-webkit-scrollbar-track,
+        .responsive-table::-webkit-scrollbar-track {
+            background: transparent;
         }
 
         table {
@@ -920,6 +988,39 @@
             border-top: 1px solid var(--ui-divider);
         }
 
+        .modal.modal-fixed-footer {
+            height: auto !important;
+            max-height: min(92vh, 840px);
+            display: none;
+        }
+
+        .modal.modal-fixed-footer.open {
+            display: flex !important;
+            flex-direction: column;
+        }
+
+        .modal.modal-fixed-footer .modal-content {
+            position: static !important;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal.modal-fixed-footer .admin-modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable both-edges;
+        }
+
+        .modal.modal-fixed-footer .modal-footer {
+            position: static !important;
+            flex-shrink: 0;
+        }
+
         .admin-modal-head {
             padding: 22px 24px 18px;
             background: linear-gradient(135deg, var(--ui-nav) 0%, var(--ui-nav-2) 100%);
@@ -973,6 +1074,133 @@
             .modal .modal-footer {
                 padding-left: 18px;
                 padding-right: 18px;
+            }
+
+            .modal.modal-fixed-footer {
+                max-height: calc(100dvh - 18px);
+            }
+        }
+
+        @media only screen and (max-width: 768px) {
+            main {
+                padding: 12px;
+            }
+
+            .responsive-stack-table {
+                border-spacing: 0;
+                min-width: 0;
+            }
+
+            .responsive-stack-table thead {
+                display: none;
+            }
+
+            .responsive-stack-table tbody,
+            .responsive-stack-table tr,
+            .responsive-stack-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .responsive-stack-table tbody {
+                display: grid;
+                gap: 12px;
+            }
+
+            .responsive-stack-table tbody tr {
+                padding: 14px 16px;
+                border: 1px solid var(--ui-border-strong);
+                border-radius: 20px;
+                background: linear-gradient(180deg, #ffffff 0%, #f3f8fc 100%);
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+                    0 8px 18px rgba(15, 23, 42, 0.06);
+            }
+
+            .responsive-stack-table tbody td {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 8px 0;
+                border: none;
+                border-radius: 0;
+                background: transparent;
+                text-align: left !important;
+            }
+
+            .responsive-stack-table tbody td::before {
+                content: attr(data-label);
+                flex: 0 0 108px;
+                max-width: 45%;
+                color: var(--ui-text-soft);
+                font-size: 0.72rem;
+                font-weight: 800;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                line-height: 1.4;
+            }
+
+            .responsive-stack-table tbody td[colspan],
+            .responsive-stack-table tbody tr.responsive-stack-note-row td {
+                display: block;
+                padding: 4px 0;
+            }
+
+            .responsive-stack-table tbody td[colspan]::before,
+            .responsive-stack-table tbody tr.responsive-stack-note-row td::before {
+                display: none;
+            }
+
+            .responsive-stack-table tbody td.right-align,
+            .responsive-stack-table tbody td.is-right {
+                justify-content: space-between;
+                text-align: left !important;
+            }
+
+            .responsive-stack-table tbody td > .actions-cell,
+            .responsive-stack-table tbody td > .cc-table-actions {
+                margin-left: auto;
+            }
+        }
+
+        @media only screen and (max-width: 600px) {
+            .admin-page-shell {
+                border-radius: 20px;
+                padding: 12px;
+            }
+
+            .card .card-content {
+                padding: 18px;
+            }
+
+            .admin-modal-title {
+                font-size: 1.3rem;
+            }
+
+            .admin-modal-subtitle {
+                font-size: 0.86rem;
+            }
+
+            .modal {
+                width: calc(100vw - 14px) !important;
+                border-radius: 22px !important;
+            }
+
+            .modal .modal-footer {
+                justify-content: stretch;
+            }
+
+            .modal .modal-footer .btn,
+            .modal .modal-footer .btn-flat {
+                width: 100%;
+            }
+
+            #toast-container {
+                top: 12px !important;
+                right: 10px !important;
+                left: 10px !important;
+                bottom: auto !important;
             }
         }
     </style>

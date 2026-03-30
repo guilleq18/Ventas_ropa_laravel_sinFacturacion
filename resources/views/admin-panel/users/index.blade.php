@@ -82,6 +82,12 @@
             font-weight: 800;
         }
         .multi-tools .btn-flat:hover { background: #f2f5f9; }
+        .actions-cell {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
         .multi-select-shell {
             border: 1px solid var(--ui-border);
             border-radius: 18px;
@@ -212,7 +218,7 @@
                         <div class="soft-panel">
                             <h6>Usuarios cargados</h6>
                             <div class="table-wrap">
-                                <table class="striped compact-table">
+                                <table class="striped compact-table responsive-stack-table">
                                     <thead>
                                         <tr>
                                             <th>Usuario</th>
@@ -225,7 +231,7 @@
                                     <tbody>
                                         @forelse ($users as $user)
                                             <tr>
-                                                <td>
+                                                <td data-label="Usuario">
                                                     <div style="font-weight:600;">{{ $user->username }}</div>
                                                     <div class="subtle">
                                                         @if ($user->first_name || $user->last_name)
@@ -238,41 +244,43 @@
                                                         @endif
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td data-label="Sucursal">
                                                     @if ($user->panelProfile?->sucursal)
                                                         {{ $user->panelProfile->sucursal->nombre }}
                                                     @else
                                                         <span class="subtle">Sin asignar</span>
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td data-label="Roles">
                                                     @forelse ($user->roles as $role)
                                                         <span class="role-chip">{{ $role->name }}</span>
                                                     @empty
                                                         <span class="subtle">Sin roles</span>
                                                     @endforelse
                                                 </td>
-                                                <td>
+                                                <td data-label="Estado">
                                                     @if ($user->is_active)
                                                         <span class="new badge green" data-badge-caption="Activo"></span>
                                                     @else
                                                         <span class="new badge red" data-badge-caption="Inactivo"></span>
                                                     @endif
                                                 </td>
-                                                <td>
-                                                    <a href="{{ route('admin-panel.users.index', ['tab' => 'usuarios', 'edit_user' => $user->id]) }}" class="btn-flat waves-effect" title="Editar usuario">
-                                                        <i class="material-icons">edit</i>
-                                                    </a>
-                                                    <a href="{{ route('admin-panel.users.index', ['tab' => 'usuarios', 'change_password_user' => $user->id]) }}" class="btn-flat waves-effect" title="Cambiar contraseña">
-                                                        <i class="material-icons">vpn_key</i>
-                                                    </a>
-                                                    <form method="POST" action="{{ route('admin-panel.users.toggle', $user) }}" class="inline-form">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit" class="btn-flat waves-effect" title="{{ $user->is_active ? 'Desactivar' : 'Activar' }}">
-                                                            <i class="material-icons">{{ $user->is_active ? 'person_off' : 'check_circle' }}</i>
-                                                        </button>
-                                                    </form>
+                                                <td data-label="Acciones">
+                                                    <div class="actions-cell">
+                                                        <a href="{{ route('admin-panel.users.index', ['tab' => 'usuarios', 'edit_user' => $user->id]) }}" class="btn-flat waves-effect" title="Editar usuario">
+                                                            <i class="material-icons">edit</i>
+                                                        </a>
+                                                        <a href="{{ route('admin-panel.users.index', ['tab' => 'usuarios', 'change_password_user' => $user->id]) }}" class="btn-flat waves-effect" title="Cambiar contraseña">
+                                                            <i class="material-icons">vpn_key</i>
+                                                        </a>
+                                                        <form method="POST" action="{{ route('admin-panel.users.toggle', $user) }}" class="inline-form">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <button type="submit" class="btn-flat waves-effect" title="{{ $user->is_active ? 'Desactivar' : 'Activar' }}">
+                                                                <i class="material-icons">{{ $user->is_active ? 'person_off' : 'check_circle' }}</i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @empty
@@ -294,7 +302,7 @@
                         <div class="soft-panel">
                             <h6>Roles existentes</h6>
                             <div class="table-wrap">
-                                <table class="striped compact-table">
+                                <table class="striped compact-table responsive-stack-table">
                                     <thead>
                                         <tr>
                                             <th>Rol</th>
@@ -306,9 +314,9 @@
                                     <tbody>
                                         @forelse ($roles as $role)
                                             <tr>
-                                                <td style="font-weight:600;">{{ $role->name }}</td>
-                                                <td>{{ $role->users_count }}</td>
-                                                <td>
+                                                <td data-label="Rol" style="font-weight:600;">{{ $role->name }}</td>
+                                                <td data-label="Usuarios">{{ $role->users_count }}</td>
+                                                <td data-label="Permisos">
                                                     <div style="font-weight:600; margin-bottom:4px;">{{ $role->permissions->count() }} permisos</div>
                                                     <ul class="perm-list">
                                                         @forelse ($role->permissions->take(4) as $permission)
@@ -321,17 +329,19 @@
                                                         @endif
                                                     </ul>
                                                 </td>
-                                                <td>
-                                                    <a href="{{ route('admin-panel.users.index', ['tab' => 'roles', 'edit_role' => $role->id]) }}" class="btn-flat waves-effect" title="Editar rol">
-                                                        <i class="material-icons">edit</i>
-                                                    </a>
-                                                    <form method="POST" action="{{ route('admin-panel.roles.destroy', $role) }}" class="inline-form" onsubmit="return confirm('¿Eliminar el rol {{ addslashes($role->name) }}?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn-flat red-text waves-effect" title="Eliminar rol">
-                                                            <i class="material-icons">delete</i>
-                                                        </button>
-                                                    </form>
+                                                <td data-label="Acciones">
+                                                    <div class="actions-cell">
+                                                        <a href="{{ route('admin-panel.users.index', ['tab' => 'roles', 'edit_role' => $role->id]) }}" class="btn-flat waves-effect" title="Editar rol">
+                                                            <i class="material-icons">edit</i>
+                                                        </a>
+                                                        <form method="POST" action="{{ route('admin-panel.roles.destroy', $role) }}" class="inline-form" onsubmit="return confirm('¿Eliminar el rol {{ addslashes($role->name) }}?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn-flat red-text waves-effect" title="Eliminar rol">
+                                                                <i class="material-icons">delete</i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @empty

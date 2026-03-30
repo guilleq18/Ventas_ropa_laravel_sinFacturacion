@@ -73,6 +73,10 @@
 
         .pos-nav .brand-logo {
             position: static !important;
+            left: auto !important;
+            right: auto !important;
+            top: auto !important;
+            transform: none !important;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -307,6 +311,59 @@
             outline: none;
         }
 
+        .pos-nav-mobile-strip {
+            display: none;
+        }
+
+        .pos-nav-mobile-scroll {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 0 18px 12px;
+            scrollbar-width: none;
+        }
+
+        .pos-nav-mobile-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .pos-nav-mobile-chip {
+            min-height: 30px;
+            padding: 0 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex: 0 0 auto;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+
+        .pos-nav-mobile-chip .material-icons {
+            font-size: 15px;
+            color: rgba(226, 232, 240, 0.78);
+        }
+
+        .pos-nav-mobile-chip.is-success {
+            color: #cfe8da;
+            border-color: rgba(167, 204, 179, 0.34);
+        }
+
+        .pos-nav-mobile-chip.is-danger {
+            color: #f1c1ca;
+            border-color: rgba(226, 175, 183, 0.34);
+        }
+
+        .pos-nav-mobile-chip.is-note {
+            color: rgba(226, 232, 240, 0.84);
+        }
+
         .pos-user-dropdown {
             min-width: 220px !important;
             border-radius: 14px;
@@ -344,11 +401,14 @@
 
         .pos-mobile-nav {
             background: linear-gradient(180deg, #f9fbfd 0%, #eef3f8 100%);
+            width: min(88vw, 340px);
+            padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
         }
 
         .pos-mobile-nav .mobile-nav-head {
             background: linear-gradient(180deg, #ffffff 0%, #edf3f8 100%);
             border-bottom: 1px solid rgba(176, 190, 205, 0.6);
+            padding-top: max(24px, calc(24px + env(safe-area-inset-top, 0px)));
         }
 
         .pos-mobile-nav .mobile-nav-brand {
@@ -410,6 +470,18 @@
             width: auto;
             max-width: none;
             margin: 18px 18px 24px;
+        }
+
+        .pos-main-grid {
+            margin-bottom: 0;
+        }
+
+        .pos-main-column {
+            width: var(--pos-carrito-width);
+        }
+
+        .pos-payments-column {
+            width: var(--pos-pagos-width);
         }
 
         .pos-shell-card {
@@ -1269,6 +1341,27 @@
             transition: opacity 0.15s ease;
         }
 
+        .payment-row-card.is-emphasized {
+            border-color: #9bb8cf;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                0 0 0 1px rgba(155, 184, 207, 0.34),
+                0 16px 30px rgba(15, 23, 42, 0.12);
+            animation: payment-row-emphasis 1.2s ease;
+        }
+
+        @keyframes payment-row-emphasis {
+            0% {
+                transform: translateY(10px);
+                opacity: 0.42;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         .payment-row-form {
             margin: 0;
         }
@@ -1757,6 +1850,152 @@
             gap: 10px;
         }
 
+        #pago_modal.modal {
+            max-height: min(92vh, 840px);
+            height: min(92vh, 840px);
+        }
+
+        #venta_modal.modal {
+            max-height: min(92vh, 840px);
+            height: min(92vh, 840px);
+        }
+
+        #pago_modal.modal.open {
+            display: flex !important;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        #venta_modal.modal.open {
+            display: flex !important;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        #pago_modal .modal-content,
+        #pago_modal_content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            width: 100%;
+            height: auto;
+            max-height: none;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #venta_modal .modal-content,
+        #venta_modal_content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            width: 100%;
+            height: auto;
+            max-height: none;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #pago_modal .pos-modal-head,
+        #pago_modal .modal-footer.payment-modal-footer {
+            flex: 0 0 auto;
+        }
+
+        #venta_modal .pos-modal-head,
+        #venta_modal .modal-footer {
+            flex: 0 0 auto;
+        }
+
+        #pago_modal .modal-footer.payment-modal-footer {
+            position: relative;
+            bottom: auto;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        #venta_modal .modal-footer {
+            position: relative;
+            bottom: auto;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        #pagos_modal_body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: #b7c5d4 rgba(236, 242, 247, 0.9);
+            padding-bottom: 28px;
+        }
+
+        #venta_modal_body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: #b7c5d4 rgba(236, 242, 247, 0.9);
+            padding-bottom: 28px;
+        }
+
+        #pagos_modal_body::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #venta_modal_body::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #pagos_modal_body::-webkit-scrollbar-track {
+            background: rgba(236, 242, 247, 0.92);
+            border-radius: 999px;
+        }
+
+        #venta_modal_body::-webkit-scrollbar-track {
+            background: rgba(236, 242, 247, 0.92);
+            border-radius: 999px;
+        }
+
+        #pagos_modal_body::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c5d2de 0%, #9fb0c2 100%);
+            border-radius: 999px;
+            border: 2px solid rgba(236, 242, 247, 0.92);
+        }
+
+        #venta_modal_body::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c5d2de 0%, #9fb0c2 100%);
+            border-radius: 999px;
+            border: 2px solid rgba(236, 242, 247, 0.92);
+        }
+
+        @media (max-width: 600px), (max-height: 600px) {
+            #toast-container {
+                top: max(12px, env(safe-area-inset-top, 0px)) !important;
+                bottom: auto !important;
+                left: 12px !important;
+                right: 12px !important;
+                transform: none !important;
+                width: auto !important;
+                min-width: 0 !important;
+            }
+
+            #toast-container .toast {
+                float: none;
+                width: 100%;
+                min-height: 0;
+                margin: 0 0 8px;
+                border-radius: 16px;
+            }
+        }
+
         .pos-modal-head {
             position: sticky;
             top: 0;
@@ -1999,6 +2238,27 @@
             font-weight: 700;
         }
 
+        .payment-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .payment-modal-footer-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .payment-modal-footer-actions form {
+            margin: 0;
+        }
+
         .pos-modal-footer-btn {
             height: 42px;
             padding: 0 18px !important;
@@ -2237,8 +2497,48 @@
         }
 
         @media (max-width: 992px) {
+            .pos-nav .nav-wrapper {
+                min-height: 60px;
+                justify-content: space-between;
+                gap: 12px;
+            }
+
+            .pos-nav .brand-logo {
+                min-width: 0;
+                max-width: calc(100% - 56px);
+            }
+
+            .pos-nav .brand-copy {
+                min-width: 0;
+            }
+
+            .pos-nav .brand-name {
+                font-size: 14px;
+                letter-spacing: 0.1em;
+            }
+
+            .pos-nav .brand-caption {
+                display: none;
+            }
+
             .pos-nav .nav-mobile-trigger {
                 display: flex !important;
+                margin-left: auto;
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                background: rgba(255, 255, 255, 0.08);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            }
+
+            .pos-nav-mobile-strip {
+                display: block;
+            }
+
+            .pos-main-column,
+            .pos-payments-column {
+                width: 100% !important;
             }
 
             .card-carrito .card-head-row,
@@ -2386,6 +2686,40 @@
                 padding: 0 12px;
             }
 
+            .pos-nav .nav-wrapper {
+                min-height: 56px;
+            }
+
+            .pos-nav .brand-logo {
+                gap: 8px;
+                padding: 8px 0;
+            }
+
+            .pos-nav .brand-mark {
+                width: 32px;
+                height: 32px;
+                border-radius: 9px;
+            }
+
+            .pos-nav .brand-name {
+                font-size: 13px;
+            }
+
+            .pos-nav-mobile-scroll {
+                padding: 0 12px 10px;
+                gap: 6px;
+            }
+
+            .pos-nav-mobile-chip {
+                min-height: 28px;
+                padding: 0 10px;
+                font-size: 10px;
+            }
+
+            .pos-mobile-nav {
+                width: min(92vw, 320px);
+            }
+
             #buscar_modal.modal,
             #pago_modal.modal,
             #venta_modal.modal {
@@ -2420,11 +2754,11 @@
             }
 
             .card-carrito .card-body {
-                max-height: 260px;
+                max-height: 220px;
             }
 
             .card-pagos .card-body {
-                max-height: 340px;
+                max-height: 240px;
             }
 
             .card-carrito .card-head-actions,
@@ -2450,8 +2784,12 @@
                 padding-left: 48px;
             }
 
+            .pos-sticky {
+                position: static;
+            }
+
             .pos-sticky .controls {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 10px;
             }
 
@@ -2461,7 +2799,7 @@
 
             .pos-summary-main,
             .pos-summary-action {
-                grid-column: auto;
+                grid-column: 1 / -1;
             }
 
             .pos-summary-main {
@@ -2469,12 +2807,20 @@
             }
 
             .pos-summary-total strong {
-                font-size: 34px;
+                font-size: 30px;
             }
 
-            .pos-summary-stat,
+            .pos-summary-stat {
+                min-height: 72px;
+                padding: 12px 14px;
+            }
+
+            .pos-summary-stat.shortcut {
+                display: none;
+            }
+
             .pos-confirm-btn {
-                min-height: auto;
+                min-height: 76px;
             }
 
             .payments-summary-value strong {
@@ -2575,6 +2921,561 @@
             .venta-payments-list .collection-item {
                 flex-direction: column;
                 align-items: flex-start !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-carrito .card-body {
+                max-height: 240px;
+            }
+
+            .cart-list-row {
+                gap: 8px;
+                padding: 14px 12px 14px 16px;
+            }
+
+            .cart-list-row::before {
+                left: 9px;
+                top: 12px;
+                bottom: 12px;
+                width: 3px;
+            }
+
+            .cart-product-cell {
+                padding-left: 6px;
+            }
+
+            .cart-product-sku {
+                font-size: 13px;
+            }
+
+            .cart-product-label {
+                margin-top: 4px;
+                font-size: 12px;
+            }
+
+            .cart-stock-cell,
+            .cart-qty-cell,
+            .cart-price-cell,
+            .cart-discount-cell,
+            .cart-charge-cell,
+            .cart-iva-cell,
+            .cart-subtotal-cell {
+                display: grid;
+                grid-template-columns: minmax(78px, auto) minmax(0, 1fr);
+                align-items: center;
+                column-gap: 8px;
+                row-gap: 4px;
+            }
+
+            .cart-mobile-label {
+                margin: 0;
+                font-size: 10px;
+            }
+
+            .cart-stock-value,
+            .cart-money-value,
+            .cart-subtotal-value,
+            .cart-price-display {
+                min-width: 0;
+                justify-content: flex-end;
+                text-align: right;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                font-size: 14px;
+            }
+
+            .cart-stock-note {
+                grid-column: 2;
+                margin-top: 0;
+                text-align: right;
+            }
+
+            .cart-qty-cell .cart-inline-form,
+            .cart-price-cell .cart-inline-form,
+            .cart-price-cell .cart-money-input {
+                width: 100%;
+                max-width: 136px;
+                margin-left: auto;
+            }
+
+            .cart-qty-cell .cart-inline-form {
+                max-width: 96px;
+            }
+
+            .cart-pill-input,
+            .cart-action-btn {
+                height: 38px;
+                border-radius: 14px;
+                font-size: 13px;
+            }
+
+            .cart-pill-input {
+                padding: 0 12px;
+            }
+
+            .cart-money-input .prefix {
+                left: 10px;
+                font-size: 12px;
+            }
+
+            .cart-money-input .cart-pill-input {
+                padding-left: 26px;
+            }
+        }
+
+        @media (max-width: 420px), (max-height: 520px) {
+            #buscar_modal.modal,
+            #pago_modal.modal,
+            #venta_modal.modal {
+                width: calc(100vw - 12px) !important;
+                max-width: calc(100vw - 12px) !important;
+                height: calc(100vh - 12px) !important;
+                max-height: calc(100vh - 12px) !important;
+                top: 6px !important;
+            }
+
+            .pos-modal-head {
+                padding: 8px 8px 6px;
+            }
+
+            .pos-modal-head-card {
+                padding: 12px;
+                border-radius: 16px;
+            }
+
+            .pos-modal-head-main {
+                gap: 10px;
+            }
+
+            .pos-modal-head-copy {
+                min-width: 0;
+                gap: 10px;
+            }
+
+            .pos-modal-icon-badge {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+            }
+
+            .pos-modal-icon-badge .material-icons {
+                font-size: 18px;
+            }
+
+            .pos-modal-title {
+                font-size: 18px;
+            }
+
+            .pos-modal-subtitle {
+                margin-top: 4px;
+                font-size: 11px;
+                line-height: 1.35;
+            }
+
+            .pos-modal-close {
+                width: 34px;
+                height: 34px;
+            }
+
+            .pos-modal-search-wrap {
+                padding: 0 8px 8px;
+            }
+
+            .pos-modal-search-input {
+                height: 46px;
+                padding: 0 72px 0 42px;
+                border-radius: 16px;
+                font-size: 14px;
+            }
+
+            .pos-modal-search-icon {
+                left: 14px;
+                font-size: 18px;
+            }
+
+            .pos-modal-search-clear {
+                right: 12px;
+                font-size: 11px;
+            }
+
+            .pos-modal-scroll {
+                padding: 8px;
+            }
+
+            #pago_modal .modal-content,
+            #pago_modal_content {
+                overflow-y: auto;
+                overflow-x: hidden;
+                scrollbar-gutter: stable;
+                scrollbar-width: thin;
+                scrollbar-color: #b7c5d4 rgba(236, 242, 247, 0.9);
+            }
+
+            #pago_modal_content::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            #pago_modal_content::-webkit-scrollbar-track {
+                background: rgba(236, 242, 247, 0.92);
+                border-radius: 999px;
+            }
+
+            #pago_modal_content::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, #c5d2de 0%, #9fb0c2 100%);
+                border-radius: 999px;
+                border: 2px solid rgba(236, 242, 247, 0.92);
+            }
+
+            #venta_modal .modal-content,
+            #venta_modal_content {
+                overflow-y: auto;
+                overflow-x: hidden;
+                scrollbar-gutter: stable;
+                scrollbar-width: thin;
+                scrollbar-color: #b7c5d4 rgba(236, 242, 247, 0.9);
+            }
+
+            #venta_modal_content::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            #venta_modal_content::-webkit-scrollbar-track {
+                background: rgba(236, 242, 247, 0.92);
+                border-radius: 999px;
+            }
+
+            #venta_modal_content::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, #c5d2de 0%, #9fb0c2 100%);
+                border-radius: 999px;
+                border: 2px solid rgba(236, 242, 247, 0.92);
+            }
+
+            #pago_modal .pos-modal-head {
+                position: static;
+            }
+
+            #venta_modal .pos-modal-head {
+                position: static;
+            }
+
+            #pagos_modal_body {
+                flex: 0 0 auto;
+                min-height: auto;
+                overflow: visible;
+                padding: 8px 8px 20px;
+            }
+
+            #venta_modal_body {
+                flex: 0 0 auto;
+                min-height: auto;
+                overflow: visible;
+                padding: 8px 8px 20px;
+            }
+
+            #venta_modal .venta-modal-stack {
+                gap: 10px;
+            }
+
+            #venta_modal .venta-section-card {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+
+            #venta_modal .venta-section-head {
+                margin-bottom: 10px;
+            }
+
+            #venta_modal .venta-section-title {
+                font-size: 16px;
+            }
+
+            #venta_modal .venta-section-subtitle {
+                font-size: 12px;
+            }
+
+            #venta_modal .venta-table-shell {
+                overflow: visible;
+                padding: 8px;
+            }
+
+            #venta_modal .venta-items-table,
+            #venta_modal .venta-items-table tbody,
+            #venta_modal .venta-items-table tr,
+            #venta_modal .venta-items-table td {
+                display: block;
+                width: 100%;
+            }
+
+            #venta_modal .venta-items-table thead {
+                display: none;
+            }
+
+            #venta_modal .venta-items-table tbody tr {
+                padding: 12px;
+                border-radius: 14px;
+                border: 1px solid rgba(196, 208, 221, 0.72);
+                background: #ffffff;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+            }
+
+            #venta_modal .venta-items-table tbody tr + tr {
+                margin-top: 8px;
+            }
+
+            #venta_modal .venta-items-table tbody td {
+                padding: 6px 0;
+                border-bottom: none;
+                text-align: left !important;
+                display: grid;
+                grid-template-columns: minmax(76px, auto) minmax(0, 1fr);
+                align-items: start;
+                column-gap: 10px;
+                row-gap: 4px;
+                font-size: 13px;
+                overflow-wrap: anywhere;
+            }
+
+            #venta_modal .venta-items-table tbody td::before {
+                content: attr(data-label);
+                color: #667085;
+                font-size: 10px;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            #venta_modal .venta-items-table tbody td strong {
+                font-size: 15px;
+            }
+
+            #venta_modal .venta-payment-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 12px;
+            }
+
+            #venta_modal .venta-payment-type {
+                font-size: 14px;
+            }
+
+            #venta_modal .venta-payment-meta {
+                font-size: 11px;
+            }
+
+            #venta_modal .venta-payment-amount {
+                min-width: 0;
+                width: 100%;
+                text-align: left;
+            }
+
+            .pos-modal-result-shell {
+                padding: 6px;
+                border-radius: 18px;
+            }
+
+            .pos-modal-summary-grid {
+                gap: 8px;
+                margin-top: 12px;
+            }
+
+            #pago_modal .pos-modal-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            #pago_modal .pos-modal-summary-grid .payments-summary-card:last-child {
+                grid-column: 1 / -1;
+            }
+
+            .payments-summary-card,
+            .pos-modal-summary-grid .payments-summary-card {
+                padding: 10px 12px;
+                border-radius: 14px;
+            }
+
+            .payments-summary-label {
+                font-size: 10px;
+            }
+
+            .payments-summary-value {
+                margin-top: 2px;
+                gap: 4px;
+                flex-wrap: wrap;
+            }
+
+            .payments-summary-value .currency {
+                font-size: 13px;
+            }
+
+            .payments-summary-value strong,
+            .pos-modal-summary-grid .payments-summary-value strong {
+                font-size: 17px;
+            }
+
+            .pos-modal-state,
+            .modal-inline-state {
+                padding: 14px 16px;
+                border-radius: 16px;
+                font-size: 12px;
+            }
+
+            .modal-search-item {
+                gap: 10px;
+                padding: 12px;
+                border-radius: 16px;
+            }
+
+            .modal-search-item-title {
+                font-size: 14px;
+            }
+
+            .modal-search-item-sku {
+                font-size: 12px;
+            }
+
+            .modal-search-item-meta {
+                gap: 6px;
+                font-size: 11px;
+            }
+
+            .modal-search-badge {
+                min-height: 24px;
+                padding: 3px 8px;
+                font-size: 11px;
+            }
+
+            .modal-search-side {
+                width: 100%;
+                min-width: 0;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            .modal-search-price {
+                font-size: 17px;
+            }
+
+            .modal-search-action,
+            .modal-search-add-btn {
+                width: 100%;
+            }
+
+            .modal-search-add-btn {
+                height: 38px;
+                padding: 0 14px !important;
+                font-size: 12px;
+            }
+
+            .payment-row-card {
+                padding: 12px;
+                margin-bottom: 10px;
+                border-radius: 16px;
+            }
+
+            .payment-text-input,
+            .payment-row-card .select-wrapper input.select-dropdown {
+                height: 44px !important;
+                line-height: 44px !important;
+                border-radius: 14px !important;
+                font-size: 13px;
+            }
+
+            .payment-field-block.has-icon .payment-text-input,
+            .payment-field-block.has-icon .select-wrapper input.select-dropdown {
+                padding-left: 40px !important;
+            }
+
+            .payment-field-block.has-icon .payment-field-icon {
+                left: 12px;
+                bottom: 13px;
+                width: 16px;
+                height: 16px;
+                font-size: 16px;
+            }
+
+            .payment-row-summary,
+            .payment-row-actions {
+                gap: 6px;
+                padding-top: 10px;
+            }
+
+            .payment-pill {
+                min-height: 28px;
+                padding: 5px 10px;
+                font-size: 11px;
+                white-space: normal;
+            }
+
+            .payment-remove-btn,
+            .pos-modal-footer-btn {
+                height: 38px;
+                font-size: 12px;
+            }
+
+            .pos-modal .modal-footer {
+                padding: 10px 8px;
+                gap: 8px;
+            }
+
+            .pos-modal-footer-note {
+                width: 100%;
+                margin-right: 0;
+                font-size: 11px;
+            }
+
+            #pago_modal .pos-modal-footer-note {
+                display: none;
+            }
+
+            .payment-modal-footer-actions {
+                width: 100%;
+                margin-left: 0;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .payment-modal-footer-actions form {
+                width: 100%;
+            }
+
+            #pago_modal .modal-footer.payment-modal-footer {
+                position: relative;
+                bottom: auto;
+                z-index: 12;
+                background: linear-gradient(180deg, rgba(249, 251, 253, 0.96) 0%, rgba(237, 243, 248, 1) 100%);
+                box-shadow: 0 -12px 24px rgba(15, 23, 42, 0.12);
+            }
+
+            #pago_modal .payment-modal-footer-actions .pos-modal-footer-btn,
+            #pago_modal .payment-modal-footer-actions form,
+            #pago_modal .payment-modal-footer-actions button {
+                width: 100%;
+                min-width: 0;
+            }
+
+            #pago_modal .pos-modal-footer-btn {
+                justify-content: center;
+                font-weight: 800;
+            }
+
+            #pago_modal .pos-modal-footer-btn.is-primary {
+                background: #182032;
+                border-color: #182032;
+                color: #ffffff;
+            }
+
+            #pago_modal .pos-modal-footer-btn.is-secondary {
+                background: #ffffff;
+                border-color: #d2dbe6;
+                color: #344054 !important;
+            }
+        }
+
+        @media (max-width: 360px), (max-height: 480px) {
+            .payment-modal-footer-actions {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -2762,6 +3663,35 @@
                 </li>
             </ul>
         </div>
+
+        <div class="pos-nav-mobile-strip">
+            <div class="pos-nav-mobile-scroll">
+                <span class="pos-nav-mobile-chip">
+                    <i class="material-icons">store</i>
+                    {{ $branchName }}
+                </span>
+                <span class="pos-nav-mobile-chip {{ $cashIsOpen ? 'is-success' : 'is-danger' }}">
+                    <i class="material-icons">{{ $cashIsOpen ? 'point_of_sale' : 'lock' }}</i>
+                    {{ $cashStatusLabel }}
+                </span>
+                <span class="pos-nav-mobile-chip is-note">
+                    <i class="material-icons">account_circle</i>
+                    {{ $user?->username ?: $userName }}
+                </span>
+                @if ($cashierName)
+                    <span class="pos-nav-mobile-chip is-note">
+                        <i class="material-icons">badge</i>
+                        Cajero: {{ $cashierName }}
+                    </span>
+                @endif
+                @if ($closeSummary)
+                    <span class="pos-nav-mobile-chip is-note">
+                        <i class="material-icons">summarize</i>
+                        Cierre: {{ $closeCount }} venta(s)
+                    </span>
+                @endif
+            </div>
+        </div>
     </nav>
 
     <ul id="user_dd" class="dropdown-content pos-user-dropdown">
@@ -2835,8 +3765,8 @@
                 @csrf
             </form>
 
-            <div class="row" style="margin-bottom:0;">
-                <div class="col s12 m6" style="width: var(--pos-carrito-width);">
+            <div class="row pos-main-grid">
+                <div class="col s12 m6 pos-main-column">
                     <div class="card pos-card card-carrito">
                         <div class="card-content">
                             <div class="sticky-head">
@@ -2993,7 +3923,7 @@
                     </div>
                 </div>
 
-                <div class="col s12 m6" style="width: var(--pos-pagos-width);">
+                <div class="col s12 m6 pos-payments-column">
                     <div class="card pos-card card-pagos">
                         <div class="card-content">
                             <div class="sticky-head">
@@ -3194,7 +4124,7 @@
         </div>
     </div>
 
-    <div id="pago_modal" class="modal modal-fixed-footer pos-modal pos-payments-modal" style="max-width:1080px; width:92%;">
+    <div id="pago_modal" class="modal pos-modal pos-payments-modal" style="max-width:1080px; width:92%;">
         <div class="modal-content" id="pago_modal_content">
             <div class="pos-modal-head">
                 <div class="pos-modal-head-card">
@@ -3274,7 +4204,7 @@
                 @foreach ($paymentRows as $payment)
                     <div class="payment-row-card">
                         <div class="row" style="margin-bottom:0;">
-                            <form class="col s12 m10 payment-row-form" method="POST" action="{{ route('caja.pagos.update', $payment['index']) }}">
+                            <form class="col s12 m10 payment-row-form" method="POST" action="{{ route('caja.pagos.update', $payment['index']) }}" data-payment-action="update">
                                 @csrf
                                 <input type="hidden" name="return_modal" value="pagos">
 
@@ -3357,7 +4287,7 @@
                             </form>
 
                             <div class="col s12 m2 payment-row-actions">
-                                <form method="POST" action="{{ route('caja.pagos.quitar', $payment['index']) }}" style="margin:0;">
+                                <form method="POST" action="{{ route('caja.pagos.quitar', $payment['index']) }}" style="margin:0;" data-payment-action="delete">
                                     @csrf
                                     <input type="hidden" name="return_modal" value="pagos">
                                     <button class="btn waves-effect waves-light payment-remove-btn" type="submit">
@@ -3369,26 +4299,30 @@
                     </div>
                 @endforeach
             </div>
-        </div>
-
-        <div class="modal-footer">
-            <div class="pos-modal-footer-note">Los cambios se guardan automaticamente.</div>
-            @if ((float) $payments['total_base'] > 0)
-                <form method="POST" action="{{ route('caja.pagos.agregar') }}" style="margin:0;">
-                    @csrf
-                    <input type="hidden" name="return_modal" value="pagos">
-                    <button type="submit" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
-                        <i class="material-icons left">add</i>Agregar
-                    </button>
-                </form>
-            @endif
-            <a href="#!" class="modal-close btn-flat pos-modal-footer-btn is-secondary">Cerrar</a>
+            <div class="modal-footer payment-modal-footer">
+                <div class="pos-modal-footer-note">Los cambios se guardan automaticamente.</div>
+                <div class="payment-modal-footer-actions">
+                    <form method="POST" action="{{ route('caja.pagos.agregar') }}" data-payment-action="add">
+                        @csrf
+                        <input type="hidden" name="return_modal" value="pagos">
+                        <button
+                            type="submit"
+                            class="btn waves-effect waves-light pos-modal-footer-btn is-primary"
+                            @disabled((float) $payments['total_base'] <= 0)
+                            title="{{ (float) $payments['total_base'] <= 0 ? 'Agrega productos al carrito para habilitar pagos.' : 'Agregar una nueva linea de pago.' }}"
+                        >
+                            <i class="material-icons left">add</i>Agregar
+                        </button>
+                    </form>
+                    <a href="#!" class="modal-close btn-flat pos-modal-footer-btn is-secondary">Cerrar</a>
+                </div>
+            </div>
         </div>
     </div>
 
     @if ($lastSale && $lastSaleView)
-        <div id="venta_modal" class="modal modal-fixed-footer pos-modal pos-sale-modal" style="max-width:1100px; width:90%;">
-            <div class="modal-content">
+        <div id="venta_modal" class="modal pos-modal pos-sale-modal" style="max-width:1100px; width:90%;">
+            <div class="modal-content" id="venta_modal_content">
                 <div class="pos-modal-head">
                     <div class="pos-modal-head-card">
                         <div class="pos-modal-head-main">
@@ -3432,7 +4366,7 @@
                     </div>
                 </div>
 
-                <div class="pos-modal-scroll">
+                <div id="venta_modal_body" class="pos-modal-scroll">
                     <div class="venta-modal-stack">
                         <section class="venta-section-card">
                             <div class="venta-section-head">
@@ -3455,10 +4389,10 @@
                                     <tbody>
                                         @foreach ($lastSaleView['items'] as $item)
                                             <tr>
-                                                <td>{{ $item->nombre_ticket }}</td>
-                                                <td class="right-align">{{ $item->cantidad }}</td>
-                                                <td class="right-align">${{ $money($item->precio_unitario) }}</td>
-                                                <td class="right-align"><strong>${{ $money($item->subtotal) }}</strong></td>
+                                                <td data-label="Producto">{{ $item->nombre_ticket }}</td>
+                                                <td class="right-align" data-label="Cant.">{{ $item->cantidad }}</td>
+                                                <td class="right-align" data-label="Precio">${{ $money($item->precio_unitario) }}</td>
+                                                <td class="right-align" data-label="Subtotal"><strong>${{ $money($item->subtotal) }}</strong></td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -3501,14 +4435,14 @@
                         </section>
                     </div>
                 </div>
-            </div>
 
-            <div class="modal-footer">
-                <a href="{{ route('caja.ticket', $lastSale) }}" class="btn-flat pos-modal-footer-btn is-secondary">Ver detalle</a>
-                <a href="{{ $lastSalePrintUrl }}" target="_blank" rel="noopener" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
-                    <i class="material-icons left">print</i>Ticket
-                </a>
-                <a href="#!" class="modal-close btn-flat pos-modal-footer-btn is-secondary">Cerrar</a>
+                <div class="modal-footer">
+                    <a href="{{ route('caja.ticket', $lastSale) }}" class="btn-flat pos-modal-footer-btn is-secondary">Ver detalle</a>
+                    <a href="{{ $lastSalePrintUrl }}" target="_blank" rel="noopener" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
+                        <i class="material-icons left">print</i>Ticket
+                    </a>
+                    <a href="#!" class="modal-close btn-flat pos-modal-footer-btn is-secondary">Cerrar</a>
+                </div>
             </div>
         </div>
     @endif
@@ -3829,11 +4763,55 @@
                 '.payments-summary-stack',
                 '#pagos_table',
                 '#pago_modal_content',
-                '#pago_modal .modal-footer',
                 '.pos-sticky .card-content',
             ].forEach((selector) => swapFromDocument(selector, nextDocument));
 
             initSelects(document.getElementById('pago_modal') || document);
+        }
+
+        function restorePaymentModalScroll(scrollTop) {
+            const scrollEl = document.getElementById('pagos_modal_body');
+
+            if (!scrollEl) {
+                return;
+            }
+
+            const maxScrollTop = Math.max(scrollEl.scrollHeight - scrollEl.clientHeight, 0);
+            scrollEl.scrollTop = Math.min(scrollTop, maxScrollTop);
+        }
+
+        function revealLatestPaymentRow() {
+            const scrollEl = document.getElementById('pagos_modal_body');
+            const rowCards = scrollEl ? Array.from(scrollEl.querySelectorAll('.payment-row-card')) : [];
+            const lastRow = rowCards.length > 0 ? rowCards[rowCards.length - 1] : null;
+
+            if (!scrollEl || !lastRow) {
+                return;
+            }
+
+            lastRow.classList.add('is-emphasized');
+
+            const focusTarget = lastRow.querySelector('input[name="monto"], .select-wrapper input.select-dropdown, input[name="referencia"]');
+
+            window.requestAnimationFrame(() => {
+                scrollEl.scrollTop = Math.max(scrollEl.scrollHeight - scrollEl.clientHeight, 0);
+                lastRow.scrollIntoView({
+                    block: 'nearest',
+                    behavior: 'smooth',
+                });
+
+                if (focusTarget && typeof focusTarget.focus === 'function') {
+                    focusTarget.focus();
+
+                    if (focusTarget instanceof HTMLInputElement && typeof focusTarget.select === 'function') {
+                        focusTarget.select();
+                    }
+                }
+            });
+
+            window.setTimeout(() => {
+                lastRow.classList.remove('is-emphasized');
+            }, 1800);
         }
 
         function initAsyncModalAdd() {
@@ -3905,6 +4883,7 @@
                 const rowCard = form.closest('.payment-row-card');
                 const scrollEl = document.getElementById('pagos_modal_body');
                 const scrollTop = scrollEl ? scrollEl.scrollTop : 0;
+                const actionType = form.dataset.paymentAction || 'update';
                 const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
                 const initialStates = submitButtons.map((button) => ({
                     button,
@@ -3932,17 +4911,24 @@
                     });
 
                     const payload = await response.json().catch(() => ({}));
+                    const successMessage = actionType === 'add'
+                        ? 'Se agrego una nueva linea de pago.'
+                        : (actionType === 'delete' ? 'Pago eliminado.' : 'Pago actualizado.');
+                    const errorMessage = actionType === 'add'
+                        ? 'No se pudo agregar la linea de pago.'
+                        : (actionType === 'delete' ? 'No se pudo quitar el pago.' : 'No se pudo actualizar el pago.');
 
                     if (!response.ok) {
-                        throw new Error(payload.message || 'No se pudo actualizar el pago.');
+                        throw new Error(payload.message || errorMessage);
                     }
 
                     await refreshPosUi();
-                    showUiToast(payload.message || 'Pago actualizado.');
+                    showUiToast(payload.message || successMessage);
 
-                    const nextScrollEl = document.getElementById('pagos_modal_body');
-                    if (nextScrollEl) {
-                        nextScrollEl.scrollTop = scrollTop;
+                    if (actionType === 'add') {
+                        revealLatestPaymentRow();
+                    } else {
+                        restorePaymentModalScroll(scrollTop);
                     }
 
                     const pagoModalEl = document.getElementById('pago_modal');

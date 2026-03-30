@@ -231,7 +231,9 @@ class CuentaCorrienteWorkflowTest extends TestCase
             ->get(route('cuentas-corrientes.payments.create', $cuenta))
             ->assertOk()
             ->assertSee('Registrar pago')
-            ->assertSee($venta->codigo_sucursal);
+            ->assertSee($venta->codigo_sucursal)
+            ->assertSee('data-label="Debe"', false)
+            ->assertSee('cc-sale-status', false);
 
         $this->actingAs($user)
             ->post(route('cuentas-corrientes.payments.store', $cuenta), [
@@ -409,6 +411,7 @@ class CuentaCorrienteWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('Alerta de mora +30 dias')
             ->assertSee(route('cuentas-corrientes.payments.create', $cuenta))
+            ->assertSee('data-label="Saldo"', false)
             ->assertSee('$110,00');
 
         $this->actingAs($user)
@@ -416,6 +419,7 @@ class CuentaCorrienteWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('Alerta de mora +30 dias')
             ->assertSee(route('cuentas-corrientes.payments.create', $cuenta))
+            ->assertSee('data-label="Monto"', false)
             ->assertSee('$110,00');
     }
 }
