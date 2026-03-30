@@ -2,6 +2,8 @@
 
 use App\Support\Migration\LegacyCsvMigrationService;
 use App\Support\Migration\LegacyAccessSyncService;
+use App\Domain\Core\Models\Sucursal;
+use App\Domain\Fiscal\Support\ArcaHomologationProbe;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\Console\Command\Command;
@@ -111,3 +113,73 @@ Artisan::command('migracion:sincronizar-accesos {--connection=django_mysql}', fu
 
     return Command::SUCCESS;
 })->purpose('Sincroniza roles y accesos desde grupos/permisos de Django');
+
+Artisan::command('fiscal:homologacion-probar {sucursal} {--sin-auth}', function (
+    ArcaHomologationProbe $probe,
+): int {
+    $branch = Sucursal::query()->find($this->argument('sucursal'));
+
+    if (! $branch) {
+        $this->error('No se encontró la sucursal indicada.');
+
+        return Command::FAILURE;
+    }
+
+    try {
+        $report = $probe->probeBranch($branch, ! (bool) $this->option('sin-auth'));
+
+        $this->info("Sucursal: {$branch->nombre}");
+        $this->table(
+            ['Chequeo', 'Resultado'],
+            [
+                ['Entorno', $report['environment']],
+                ['Punto de venta', (string) $report['point_of_sale']],
+                ['Clase sugerida', $report['receipt_class']],
+                ['Código comprobante', (string) $report['receipt_code']],
+                ['Preparación fiscal', $report['readiness']['ready'] ? 'OK' : 'PENDIENTE'],
+            ],
+        );
+
+        if (($report['readiness']['issues'] ?? []) !== []) {
+            $this->warn('Pendientes de configuración:');
+            foreach ($report['readiness']['issues'] as $issue) {
+                $this->line(" - {$issue}");
+            }
+        }
+
+        $this->newLine();
+        $this->table(
+            ['Servicio', 'Estado'],
+            [[
+                'WSFE FEDummy',
+                implode(' | ', [
+                    'App '.$report['wsfe_dummy']['app_server'],
+                    'DB '.$report['wsfe_dummy']['db_server'],
+                    'Auth '.$report['wsfe_dummy']['auth_server'],
+                ]),
+            ]],
+        );
+
+        if ($this->option('sin-auth')) {
+            $this->comment('Se omitió la prueba WSAA/FECompUltimoAutorizado por opción --sin-auth.');
+
+            return Command::SUCCESS;
+        }
+
+        if ($report['wsaa']) {
+            $this->info('WSAA OK. Expiración del TA: '.$report['wsaa']['expiration_time']);
+        }
+
+        if ($report['last_authorized']) {
+            $this->info(
+                'WSFE autorizado. Último comprobante informado: '.(string) ($report['last_authorized']['numero'] ?? 0),
+            );
+        }
+
+        return Command::SUCCESS;
+    } catch (\Throwable $exception) {
+        $this->error($exception->getMessage());
+
+        return Command::FAILURE;
+    }
+})->purpose('Prueba el circuito de homologación ARCA/WSFE para una sucursal');

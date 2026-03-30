@@ -7,6 +7,7 @@ use App\Domain\Caja\Support\CajaManager;
 use App\Domain\Caja\Support\PosSessionStore;
 use App\Domain\Caja\Support\VentaTicketViewBuilder;
 use App\Domain\Catalogo\Models\Variante;
+use App\Domain\Fiscal\Support\FiscalConfigManager;
 use App\Domain\Ventas\Models\Venta;
 use App\Domain\Ventas\Support\VentaConfirmationService;
 use App\Http\Controllers\Controller;
@@ -26,6 +27,7 @@ class CajaController extends Controller
         protected PosSessionStore $posSessionStore,
         protected VentaConfirmationService $ventaConfirmationService,
         protected AdminSettingsManager $settingsManager,
+        protected FiscalConfigManager $fiscalConfigManager,
         protected VentaTicketViewBuilder $ticketViewBuilder,
     ) {
     }
@@ -64,6 +66,8 @@ class CajaController extends Controller
         $lastSale = null;
         $lastSaleView = null;
         $showLastSaleModal = false;
+        $fiscalUi = $this->fiscalConfigManager->branchUi(null);
+        $fiscalDraft = $this->defaultFiscalDraft($fiscalUi);
 
         try {
             $branch = $this->cajaManager->resolveSucursalForUser($request->user());
@@ -86,6 +90,9 @@ class CajaController extends Controller
                     $showLastSaleModal = $lastSale->id === $lastSaleModalId;
                 }
             }
+
+            $fiscalUi = $this->fiscalConfigManager->branchUi($branch);
+            $fiscalDraft = $this->posSessionStore->fiscalDraft($request, $this->defaultFiscalDraft($fiscalUi));
         } catch (DomainException $exception) {
             $setupError = $exception->getMessage();
         }
@@ -109,6 +116,8 @@ class CajaController extends Controller
             'lastSale' => $lastSale,
             'lastSaleView' => $lastSaleView,
             'showLastSaleModal' => $showLastSaleModal,
+            'fiscalUi' => $fiscalUi,
+            'fiscalDraft' => $fiscalDraft,
         ]);
     }
 
@@ -414,6 +423,7 @@ class CajaController extends Controller
         try {
             $branch = $this->cajaManager->resolveSucursalForUser($request->user());
             $this->cajaManager->assertOperable($request->user(), $branch);
+            $fiscalUi = $this->fiscalConfigManager->branchUi($branch);
 
             $sentToken = trim((string) $request->input('confirm_token', ''));
             $sessionToken = $this->posSessionStore->ensureConfirmToken($request);
@@ -429,9 +439,20 @@ class CajaController extends Controller
                 $branch,
                 $cart['rows'],
                 $payments['rows'],
+                [
+                    'accion_fiscal' => (string) $request->input('accion_fiscal', ''),
+                    'referencia_comprobante_externo' => (string) $request->input('referencia_comprobante_externo', ''),
+                    'fiscal_observacion' => (string) $request->input('fiscal_observacion', ''),
+                    'fiscal_receptor_doc_tipo' => (string) $request->input('fiscal_receptor_doc_tipo', ''),
+                    'fiscal_receptor_doc_nro' => (string) $request->input('fiscal_receptor_doc_nro', ''),
+                    'fiscal_receptor_nombre' => (string) $request->input('fiscal_receptor_nombre', ''),
+                    'fiscal_receptor_domicilio' => (string) $request->input('fiscal_receptor_domicilio', ''),
+                    'fiscal_receptor_condicion_iva' => (string) $request->input('fiscal_receptor_condicion_iva', ''),
+                ],
             );
 
             $this->posSessionStore->clearPosState($request);
+            $this->posSessionStore->prepareFiscalDraftForNextSale($request, $this->defaultFiscalDraft($fiscalUi));
             $this->posSessionStore->refreshConfirmToken($request);
             $request->session()->put('pos_last_sale_id', $sale->id);
             $request->session()->put('pos_last_sale_modal_id', $sale->id);
@@ -440,10 +461,46 @@ class CajaController extends Controller
                 ->route('caja.pos')
                 ->with(
                     'success',
-                    "Venta confirmada: {$sale->codigo_sucursal} por $ {$sale->total}.",
+                    $this->saleSuccessMessage($sale),
                 );
         } catch (DomainException $exception) {
-            return $this->redirectWithError($request, $exception->getMessage());
+            return $this->redirectToPos($request)
+                ->withInput()
+                ->with('error', $exception->getMessage());
+        }
+    }
+
+    public function saveFiscalDraft(Request $request): JsonResponse
+    {
+        try {
+            $branch = $this->cajaManager->resolveSucursalForUser($request->user());
+            $this->cajaManager->assertOperable($request->user(), $branch);
+            $fiscalUi = $this->fiscalConfigManager->branchUi($branch);
+
+            $draft = $this->posSessionStore->saveFiscalDraft(
+                $request,
+                [
+                    'accion_fiscal' => (string) $request->input('accion_fiscal', ''),
+                    'referencia_comprobante_externo' => (string) $request->input('referencia_comprobante_externo', ''),
+                    'fiscal_receptor_doc_tipo' => (string) $request->input('fiscal_receptor_doc_tipo', ''),
+                    'fiscal_receptor_doc_nro' => (string) $request->input('fiscal_receptor_doc_nro', ''),
+                    'fiscal_receptor_nombre' => (string) $request->input('fiscal_receptor_nombre', ''),
+                    'fiscal_receptor_domicilio' => (string) $request->input('fiscal_receptor_domicilio', ''),
+                    'fiscal_receptor_condicion_iva' => (string) $request->input('fiscal_receptor_condicion_iva', ''),
+                ],
+                $this->defaultFiscalDraft($fiscalUi),
+            );
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'Datos fiscales guardados para reutilizar en la siguiente venta.',
+                'draft' => $draft,
+            ]);
+        } catch (DomainException $exception) {
+            return response()->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 422);
         }
     }
 
@@ -480,6 +537,15 @@ class CajaController extends Controller
         $value = trim($value);
 
         return in_array($value, ['buscar', 'pagos'], true) ? $value : null;
+    }
+
+    protected function defaultFiscalDraft(array $fiscalUi): array
+    {
+        return [
+            'accion_fiscal' => (string) ($fiscalUi['default_action'] ?? Venta::ACCION_FISCAL_SOLO_REGISTRO),
+            'referencia_comprobante_externo' => '',
+            ...((array) ($fiscalUi['default_receiver'] ?? [])),
+        ];
     }
 
     protected function isAsyncUiRequest(Request $request): bool
@@ -552,5 +618,33 @@ class CajaController extends Controller
             ->all();
 
         return $payments;
+    }
+
+    protected function saleSuccessMessage(Venta $sale): string
+    {
+        $base = "Venta confirmada: {$sale->codigo_sucursal} por $ {$sale->total}.";
+
+        return match ($sale->accion_fiscal) {
+            Venta::ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA => $base.' Se registró una referencia de comprobante externo.',
+            Venta::ACCION_FISCAL_FACTURA_ELECTRONICA => $this->electronicSaleSuccessMessage($sale, $base),
+            default => $base.' Se guardó como registro interno.',
+        };
+    }
+
+    protected function electronicSaleSuccessMessage(Venta $sale, string $base): string
+    {
+        $document = $sale->comprobantePrincipal;
+
+        if ($sale->estado_fiscal === Venta::ESTADO_FISCAL_AUTORIZADO && $document) {
+            $number = $document->numero_completo ?: 's/n';
+
+            return $base." Factura autorizada: {$document->descripcion_completa} {$number}, CAE {$document->cae}.";
+        }
+
+        if ($sale->estado_fiscal === Venta::ESTADO_FISCAL_RECHAZADO) {
+            return $base.' ARCA rechazó el comprobante electrónico; la venta quedó registrada para revisión.';
+        }
+
+        return $base.' La venta quedó pendiente de reproceso fiscal.';
     }
 }

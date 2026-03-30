@@ -8,6 +8,10 @@ use App\Domain\Catalogo\Models\Producto;
 use App\Domain\Catalogo\Models\Variante;
 use App\Domain\Core\Models\AppSetting;
 use App\Domain\Core\Models\Sucursal;
+use App\Domain\Fiscal\Models\SucursalFiscalConfig;
+use App\Domain\Fiscal\Models\VentaComprobante;
+use App\Domain\Fiscal\Support\ArcaCredentialManager;
+use App\Domain\Fiscal\Support\ArcaHomologationProbe;
 use App\Domain\CuentasCorrientes\Models\Cliente;
 use App\Domain\CuentasCorrientes\Models\CuentaCorriente;
 use App\Domain\Ventas\Models\PlanCuotas;
@@ -17,6 +21,7 @@ use App\Domain\Ventas\Models\VentaPago;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\File;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -74,15 +79,58 @@ class AdminPanelWorkflowTest extends TestCase
         $this->actingAs($user)
             ->get(route('admin-panel.settings.index', ['sucursal' => $branch->id]))
             ->assertOk()
-            ->assertSee('Permitir vender sin stock');
+            ->assertSee('Permitir vender sin stock')
+            ->assertSee('Facturación electrónica');
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.settings.index', ['sucursal' => $branch->id, 'tab' => 'facturacion']))
+            ->assertOk()
+            ->assertSee('Punto de venta fiscal')
+            ->assertSee('Domicilio fiscal de emision');
+
+        AppSetting::query()->updateOrCreate([
+            'key' => 'empresa.razon_social',
+        ], [
+            'key' => 'empresa.razon_social',
+            'value_str' => 'Tienda Urbana SRL',
+            'description' => 'Razón social',
+        ]);
+        AppSetting::query()->updateOrCreate([
+            'key' => 'empresa.cuit',
+        ], [
+            'key' => 'empresa.cuit',
+            'value_str' => '30-12345678-9',
+            'description' => 'CUIT',
+        ]);
+        AppSetting::query()->updateOrCreate([
+            'key' => 'empresa.direccion',
+        ], [
+            'key' => 'empresa.direccion',
+            'value_str' => 'Av. Siempre Viva 742',
+            'description' => 'Dirección',
+        ]);
 
         $this->actingAs($user)
             ->put(route('admin-panel.settings.update'), [
                 'sucursal_id' => $branch->id,
+                'tab' => 'ventas',
                 'permitir_sin_stock' => '1',
                 'permitir_cambiar_precio_venta' => '0',
             ])
-            ->assertRedirect(route('admin-panel.settings.index', ['sucursal' => $branch->id]));
+            ->assertRedirect(route('admin-panel.settings.index', ['sucursal' => $branch->id, 'tab' => 'ventas']));
+
+        $this->actingAs($user)
+            ->put(route('admin-panel.settings.update'), [
+                'sucursal_id' => $branch->id,
+                'tab' => 'facturacion',
+                'fiscal_modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+                'fiscal_entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+                'fiscal_punto_venta' => '11',
+                'fiscal_facturacion_habilitada' => '1',
+                'fiscal_requiere_receptor_en_todas' => '1',
+                'fiscal_domicilio_fiscal_emision' => 'Av. Fiscal 123',
+            ])
+            ->assertRedirect(route('admin-panel.settings.index', ['sucursal' => $branch->id, 'tab' => 'facturacion']));
 
         $this->assertDatabaseHas('app_settings', [
             'key' => "ventas.sucursal.{$branch->id}.permitir_sin_stock",
@@ -92,6 +140,223 @@ class AdminPanelWorkflowTest extends TestCase
             'key' => "ventas.sucursal.{$branch->id}.permitir_cambiar_precio_venta",
             'value_bool' => false,
         ]);
+        $this->assertDatabaseHas('sucursal_fiscal_configs', [
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 11,
+            'facturacion_habilitada' => true,
+            'requiere_receptor_en_todas' => true,
+            'domicilio_fiscal_emision' => 'Av. Fiscal 123',
+        ]);
+    }
+
+    public function test_arca_credentials_can_be_generated_from_admin_settings(): void
+    {
+        $user = User::factory()->create();
+        $branch = Sucursal::query()->create([
+            'nombre' => 'Casa Central',
+            'activa' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.settings.index', ['sucursal' => $branch->id, 'tab' => 'credenciales']))
+            ->assertOk()
+            ->assertSee('Credenciales ARCA')
+            ->assertSee('Generar key + CSR');
+
+        $this->actingAs($user)
+            ->post(route('admin-panel.settings.arca.generate-csr'), [
+                'sucursal_id' => $branch->id,
+                'arca_represented_cuit' => '20-36436263-4',
+                'arca_alias' => 'tiendaropahomo',
+                'arca_organization' => 'Tienda Urbana SRL',
+                'arca_common_name' => 'tienda_ropa_laravel',
+            ])
+            ->assertRedirect(route('admin-panel.settings.index', ['tab' => 'credenciales', 'sucursal' => $branch->id]));
+
+        $privateKeyPath = (string) AppSetting::query()->where('key', 'fiscal.arca.private_key_path')->value('value_str');
+        $csrPath = (string) AppSetting::query()->where('key', 'fiscal.arca.csr_path')->value('value_str');
+
+        $this->assertDatabaseHas('app_settings', [
+            'key' => 'fiscal.arca.represented_cuit',
+            'value_str' => '20364362634',
+        ]);
+        $this->assertDatabaseHas('app_settings', [
+            'key' => 'fiscal.arca.alias',
+            'value_str' => 'tiendaropahomo',
+        ]);
+        $this->assertDatabaseHas('app_settings', [
+            'key' => 'fiscal.arca.certificate_path',
+            'value_str' => '',
+        ]);
+        $this->assertNotSame('', $privateKeyPath);
+        $this->assertNotSame('', $csrPath);
+        $this->assertTrue(File::exists(base_path($privateKeyPath)));
+        $this->assertTrue(File::exists(base_path($csrPath)));
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.settings.index', ['sucursal' => $branch->id, 'tab' => 'credenciales']))
+            ->assertOk()
+            ->assertSee('CSR lista para copiar')
+            ->assertSee('BEGIN CERTIFICATE REQUEST')
+            ->assertSee('Copiar CSR');
+    }
+
+    public function test_arca_certificate_can_be_uploaded_validated_and_probed_from_admin_settings(): void
+    {
+        $user = User::factory()->create();
+        $branch = Sucursal::query()->create([
+            'nombre' => 'Casa Central',
+            'activa' => true,
+        ]);
+
+        $manager = app(ArcaCredentialManager::class);
+        $manager->generateKeyAndCsr(
+            '20364362634',
+            'tiendaropahomo',
+            'Tienda Urbana SRL',
+            'tienda_ropa_laravel',
+        );
+
+        $certificatePem = $this->issueSelfSignedCertificatePem(
+            (string) AppSetting::query()->where('key', 'fiscal.arca.csr_path')->value('value_str'),
+            (string) AppSetting::query()->where('key', 'fiscal.arca.private_key_path')->value('value_str'),
+        );
+
+        $this->actingAs($user)
+            ->post(route('admin-panel.settings.arca.upload-certificate'), [
+                'sucursal_id' => $branch->id,
+                'arca_certificate_pem' => $certificatePem,
+            ])
+            ->assertRedirect(route('admin-panel.settings.index', ['tab' => 'credenciales', 'sucursal' => $branch->id]))
+            ->assertSessionHas('arca_validation', fn (array $validation) => ($validation['ok'] ?? false) === true);
+
+        $certificatePath = (string) AppSetting::query()->where('key', 'fiscal.arca.certificate_path')->value('value_str');
+        $this->assertNotSame('', $certificatePath);
+        $this->assertTrue(File::exists(base_path($certificatePath)));
+
+        $this->actingAs($user)
+            ->post(route('admin-panel.settings.arca.validate-credentials'), [
+                'sucursal_id' => $branch->id,
+            ])
+            ->assertRedirect(route('admin-panel.settings.index', ['tab' => 'credenciales', 'sucursal' => $branch->id]))
+            ->assertSessionHas('arca_validation', fn (array $validation) => ($validation['ok'] ?? false) === true);
+
+        $probeMock = \Mockery::mock(ArcaHomologationProbe::class);
+        $probeMock->shouldReceive('probeBranch')
+            ->once()
+            ->andReturnUsing(function ($branch): array {
+                return [
+                    'branch' => ['id' => $branch->id, 'nombre' => $branch->nombre],
+                    'environment' => 'HOMOLOGACION',
+                    'point_of_sale' => 11,
+                    'receipt_class' => 'B',
+                    'receipt_code' => 6,
+                    'readiness' => ['ready' => true, 'issues' => []],
+                    'wsfe_dummy' => [
+                        'app_server' => 'OK',
+                        'db_server' => 'OK',
+                        'auth_server' => 'OK',
+                    ],
+                    'wsaa' => [
+                        'expiration_time' => now()->addHours(12)->toIso8601String(),
+                    ],
+                    'last_authorized' => [
+                        'numero' => 123,
+                    ],
+                ];
+            });
+        $this->app->instance(ArcaHomologationProbe::class, $probeMock);
+
+        $this->actingAs($user)
+            ->post(route('admin-panel.settings.arca.probe'), [
+                'sucursal_id' => $branch->id,
+            ])
+            ->assertRedirect(route('admin-panel.settings.index', ['tab' => 'credenciales', 'sucursal' => $branch->id]))
+            ->assertSessionHas('arca_probe', fn (array $probe) => ($probe['environment'] ?? null) === 'HOMOLOGACION');
+    }
+
+    public function test_arca_credentials_tab_is_available_even_without_branches(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.settings.index', ['tab' => 'credenciales']))
+            ->assertOk()
+            ->assertSee('Credenciales ARCA')
+            ->assertSee('Generar key + CSR')
+            ->assertSee('solo la prueba de homologación requiere una sucursal', false);
+    }
+
+    public function test_arca_alias_rejects_non_alphanumeric_characters(): void
+    {
+        $user = User::factory()->create();
+        $branch = Sucursal::query()->create([
+            'nombre' => 'Casa Central',
+            'activa' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('admin-panel.settings.index', ['tab' => 'credenciales', 'sucursal' => $branch->id]))
+            ->post(route('admin-panel.settings.arca.generate-csr'), [
+                'sucursal_id' => $branch->id,
+                'arca_represented_cuit' => '20364362634',
+                'arca_alias' => 'tienda-ropa-homo',
+                'arca_organization' => 'EmpresaAR',
+                'arca_common_name' => 'tienda_ropa',
+            ])
+            ->assertRedirect(route('admin-panel.settings.index', ['tab' => 'credenciales', 'sucursal' => $branch->id]))
+            ->assertSessionHasErrors([
+                'arca_alias' => 'El alias DN solo puede contener letras y números, sin espacios ni símbolos.',
+            ]);
+    }
+
+    public function test_sales_views_expose_printable_fiscal_document_when_present(): void
+    {
+        $user = User::factory()->create();
+        $fixture = $this->createConfirmedSaleFixture($user);
+        $document = VentaComprobante::query()->create([
+            'venta_id' => $fixture['venta']->id,
+            'sucursal_id' => $fixture['branch']->id,
+            'modo_emision' => VentaComprobante::MODO_ELECTRONICA_ARCA,
+            'estado' => VentaComprobante::ESTADO_AUTORIZADO,
+            'tipo_comprobante' => VentaComprobante::TIPO_FACTURA,
+            'clase' => 'B',
+            'codigo_arca' => 6,
+            'punto_venta' => 3,
+            'numero_comprobante' => 1,
+            'fecha_emision' => now(),
+            'doc_tipo_receptor' => 96,
+            'doc_nro_receptor' => '30123456',
+            'receptor_nombre' => 'Lucia Fernandez',
+            'importe_neto' => '10000.00',
+            'importe_iva' => '2100.00',
+            'importe_otros_tributos' => '0.00',
+            'importe_total' => '12100.00',
+            'cae' => '99990000123456',
+            'cae_vto' => now()->addDays(10)->toDateString(),
+            'qr_payload_json' => ['ver' => 1],
+            'qr_url' => 'https://www.arca.gob.ar/fe/qr/?p=fake',
+            'emitido_en' => now(),
+        ]);
+        $fixture['venta']->update([
+            'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+            'estado_fiscal' => Venta::ESTADO_FISCAL_AUTORIZADO,
+            'tiene_comprobante_fiscal' => true,
+            'venta_comprobante_principal_id' => $document->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.ventas.index'))
+            ->assertOk()
+            ->assertSee(route('fiscal.comprobantes.show', $document).'?print=1');
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.ventas.show', $fixture['venta']->fresh()))
+            ->assertOk()
+            ->assertSee(route('fiscal.comprobantes.show', $document).'?print=1')
+            ->assertSee('99990000123456');
     }
 
     public function test_company_data_and_branch_crud_work(): void
@@ -376,5 +641,31 @@ class AdminPanelWorkflowTest extends TestCase
             'sale' => $sale,
             'venta' => $sale,
         ];
+    }
+
+    protected function issueSelfSignedCertificatePem(string $csrPath, string $privateKeyPath): string
+    {
+        $opensslConfig = realpath('E:\\Dev\\Tools\\laravel-runtime\\php\\extras\\ssl\\openssl.cnf');
+
+        if ($opensslConfig) {
+            putenv("OPENSSL_CONF={$opensslConfig}");
+        }
+
+        $csrPem = (string) File::get(base_path($csrPath));
+        $privateKey = openssl_pkey_get_private((string) File::get(base_path($privateKeyPath)));
+
+        $this->assertNotFalse($privateKey);
+
+        $options = $opensslConfig ? ['config' => $opensslConfig, 'digest_alg' => 'sha256'] : ['digest_alg' => 'sha256'];
+        $certificate = openssl_csr_sign($csrPem, null, $privateKey, 365, $options);
+
+        $this->assertNotFalse($certificate);
+
+        $certificatePem = '';
+        $exported = openssl_x509_export($certificate, $certificatePem);
+
+        $this->assertTrue($exported);
+
+        return $certificatePem;
     }
 }

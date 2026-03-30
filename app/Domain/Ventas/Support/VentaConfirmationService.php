@@ -4,11 +4,13 @@ namespace App\Domain\Ventas\Support;
 
 use App\Domain\Admin\Support\AdminSettingsManager;
 use App\Domain\Caja\Support\CajaManager;
+use App\Domain\Fiscal\Support\ArcaCredentialManager;
 use App\Domain\Catalogo\Models\StockSucursal;
 use App\Domain\Catalogo\Models\Variante;
 use App\Domain\Core\Models\Sucursal;
 use App\Domain\CuentasCorrientes\Models\CuentaCorriente;
 use App\Domain\CuentasCorrientes\Models\MovimientoCuentaCorriente;
+use App\Domain\Fiscal\Support\VentaComprobanteEmitter;
 use App\Domain\Ventas\Models\PlanCuotas;
 use App\Domain\Ventas\Models\Venta;
 use App\Domain\Ventas\Models\VentaItem;
@@ -24,6 +26,8 @@ class VentaConfirmationService
     public function __construct(
         protected AdminSettingsManager $settingsManager,
         protected CajaManager $cajaManager,
+        protected VentaComprobanteEmitter $ventaComprobanteEmitter,
+        protected ArcaCredentialManager $arcaCredentialManager,
     ) {
     }
 
@@ -32,6 +36,7 @@ class VentaConfirmationService
         Sucursal $branch,
         array $cartRows,
         array $paymentRows,
+        array $fiscalPayload = [],
     ): Venta {
         if ($cartRows === []) {
             throw new DomainException('El carrito esta vacio.');
@@ -41,7 +46,7 @@ class VentaConfirmationService
             throw new DomainException('No hay pagos cargados.');
         }
 
-        return DB::transaction(function () use ($user, $branch, $cartRows, $paymentRows): Venta {
+        return DB::transaction(function () use ($user, $branch, $cartRows, $paymentRows, $fiscalPayload): Venta {
             $branch = Sucursal::query()
                 ->whereKey($branch->id)
                 ->lockForUpdate()
@@ -185,8 +190,13 @@ class VentaConfirmationService
             $sale->numero_sucursal = $this->nextBranchNumber($branch);
             $sale->total = $this->money($expectedFinal);
             $sale->estado = Venta::ESTADO_CONFIRMADA;
+            $sale->accion_fiscal = Venta::ACCION_FISCAL_SOLO_REGISTRO;
+            $sale->estado_fiscal = Venta::ESTADO_FISCAL_NO_REQUERIDO;
+            $sale->tiene_comprobante_fiscal = false;
+            $sale->venta_comprobante_principal_id = null;
             $this->applyCompanySnapshot($sale, $items);
             $sale->save();
+            $this->ventaComprobanteEmitter->registerSaleOutcome($user, $sale, $fiscalPayload);
 
             foreach ($paymentRows as $row) {
                 if ($row['tipo'] !== VentaPago::TIPO_CUENTA_CORRIENTE) {
@@ -214,7 +224,7 @@ class VentaConfirmationService
                 ]);
             }
 
-            return $sale->load(['items.variante.producto', 'pagos.plan']);
+            return $sale->load(['items.variante.producto', 'pagos.plan', 'comprobantePrincipal']);
         });
     }
 
@@ -276,6 +286,12 @@ class VentaConfirmationService
     protected function applyCompanySnapshot(Venta $sale, array $items): void
     {
         $company = $this->settingsManager->getCompanyData();
+        $companyRawCuit = (string) ($company['cuit'] ?? '');
+        $representedCuit = preg_replace('/\D+/', '', $this->arcaCredentialManager->resolvedRepresentedCuit()) ?: '';
+        $companyCuit = preg_replace('/\D+/', '', $companyRawCuit) ?: '';
+        $emitterCuit = strlen($representedCuit) === 11
+            ? $representedCuit
+            : (strlen($companyCuit) === 11 ? $companyRawCuit : $companyRawCuit);
 
         $net = BigDecimal::zero();
         $iva = BigDecimal::zero();
@@ -289,7 +305,7 @@ class VentaConfirmationService
 
         $sale->empresa_nombre_snapshot = (string) ($company['nombre'] ?? '');
         $sale->empresa_razon_social_snapshot = (string) ($company['razon_social'] ?? '');
-        $sale->empresa_cuit_snapshot = (string) ($company['cuit'] ?? '');
+        $sale->empresa_cuit_snapshot = $emitterCuit;
         $sale->empresa_direccion_snapshot = (string) ($company['direccion'] ?? '');
         $sale->empresa_condicion_fiscal_snapshot = (string) ($company['condicion_fiscal'] ?? '');
         $sale->fiscal_items_sin_impuestos_nacionales = $this->money($net);

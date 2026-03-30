@@ -753,7 +753,7 @@
 
         .card-pagos .card-head-actions {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             width: 100%;
             gap: 10px;
             margin-top: 16px;
@@ -976,6 +976,153 @@
 
         .pos-sticky .card-content {
             padding: 11px 14px;
+        }
+
+        .pos-fiscal-note {
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: rgba(15, 23, 42, 0.22);
+            color: rgba(226, 232, 240, 0.84);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .pos-fiscal-note strong {
+            color: #f8fafc;
+        }
+
+        .pos-fiscal-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .pos-fiscal-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(241, 245, 249, 0.88);
+        }
+
+        .pos-fiscal-chip i {
+            font-size: 14px;
+        }
+
+        .pos-fiscal-field.is-hidden {
+            display: none;
+        }
+
+        .pos-fiscal-receiver-hint {
+            font-size: 12px;
+            line-height: 1.45;
+            color: rgba(226, 232, 240, 0.78);
+        }
+
+        .pos-fiscal-modal {
+            width: min(92vw, 960px) !important;
+            max-width: 960px !important;
+            max-height: min(88vh, 860px);
+            border-radius: 26px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #f8fbfd 0%, #eef3f8 100%);
+        }
+
+        .pos-fiscal-modal .modal-content {
+            padding: 0;
+        }
+
+        .pos-fiscal-modal .modal-footer {
+            background: #f8fbfd;
+        }
+
+        .pos-fiscal-summary-grid {
+            margin-top: 16px;
+        }
+
+        .pos-fiscal-modal-body {
+            padding-top: 0;
+        }
+
+        .pos-fiscal-modal-stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .pos-fiscal-modal-card {
+            padding: 18px;
+            border-radius: 22px;
+            border: 1px solid rgba(184, 197, 214, 0.86);
+            background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .pos-fiscal-modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .pos-fiscal-modal-title {
+            font-size: 17px;
+            font-weight: 900;
+            color: #182032;
+            letter-spacing: -0.02em;
+        }
+
+        .pos-fiscal-modal-subtitle {
+            margin-top: 4px;
+            color: #5d6b7d;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .pos-fiscal-modal-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pos-fiscal-modal-field {
+            margin: 0;
+        }
+
+        .pos-fiscal-modal-field label,
+        .pos-fiscal-modal-field > label,
+        .pos-fiscal-modal-field .select-wrapper input.select-dropdown,
+        .pos-fiscal-modal-field input {
+            color: #182032;
+        }
+
+        .pos-fiscal-modal-field .input-field label,
+        .pos-fiscal-modal-field label {
+            color: #5d6b7d !important;
+        }
+
+        .pos-fiscal-modal-field .select-wrapper input.select-dropdown,
+        .pos-fiscal-modal-field input {
+            margin-bottom: 0;
+            border-bottom-color: rgba(93, 107, 125, 0.3) !important;
+        }
+
+        .pos-fiscal-modal-field .select-wrapper input.select-dropdown:focus,
+        .pos-fiscal-modal-field input:focus {
+            border-bottom-color: rgba(32, 51, 77, 0.75) !important;
+            box-shadow: 0 1px 0 0 rgba(32, 51, 77, 0.75) !important;
+        }
+
+        .pos-fiscal-modal-field .caret {
+            fill: rgba(32, 51, 77, 0.72);
         }
 
         .pos-sticky .controls {
@@ -2573,6 +2720,10 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .pos-fiscal-modal-grid {
+                grid-template-columns: 1fr;
+            }
+
             .payment-row-summary,
             .payment-row-actions {
                 justify-content: flex-start;
@@ -2791,6 +2942,17 @@
             .pos-sticky .controls {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 10px;
+            }
+
+            .pos-fiscal-modal {
+                width: min(96vw, 760px) !important;
+                max-height: min(92vh, 840px);
+                border-radius: 22px;
+            }
+
+            .pos-fiscal-modal-card {
+                padding: 14px;
+                border-radius: 18px;
             }
 
             .pos-sticky .card-content {
@@ -3496,6 +3658,9 @@
     $closeCount = (int) data_get($closeSummary, 'cantidad', 0);
     $closeTotal = (string) data_get($closeSummary, 'total', '0.00');
     $lastSalePrintUrl = $lastSale ? route('caja.ticket', $lastSale).'?print=1' : null;
+    $lastSaleFiscalUrl = ($lastSale?->comprobantePrincipal?->es_imprimible ?? false)
+        ? route('fiscal.comprobantes.show', $lastSale->comprobantePrincipal).'?print=1'
+        : null;
     $currentUrl = route('caja.pos');
     $cashierName = $cashSession?->cajeroApertura?->nombre_completo;
     $cashStatusLabel = $cashIsOpen
@@ -3505,6 +3670,8 @@
         ? ($canOperate ? 'nav-chip-success' : 'nav-chip-warn')
         : 'nav-chip-danger';
     $hasPendingBalance = (float) ($payments['saldo'] ?? 0) > 0;
+    $receiverIdentificationRequired = (bool) ($fiscalUi['requiere_receptor_en_todas'] ?? false)
+        || (float) ($payments['total_cobrar'] ?? 0) >= (float) ($fiscalUi['consumer_final_threshold'] ?? 10000000);
 @endphp
 
     @if ($lastSale && $lastSaleView)
@@ -3517,7 +3684,7 @@
                             {{ $lastSale->codigo_sucursal ?: ('#'.$lastSale->id) }}
                         </div>
                         <div class="grey-text text-darken-1" style="font-size:12px; margin-top:6px;">
-                            {{ $lastSale->created_at?->format('d/m/Y H:i') ?: 'Sin fecha' }}
+                            {{ $lastSale->fecha?->format('d/m/Y H:i') ?: 'Sin fecha' }}
                         </div>
                     </div>
                     <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
@@ -3546,6 +3713,11 @@
                         <a href="{{ $lastSalePrintUrl }}" target="_blank" rel="noopener" class="btn green darken-1 waves-effect waves-light">
                             <i class="material-icons left">print</i>Ticket
                         </a>
+                        @if ($lastSaleFiscalUrl)
+                            <a href="{{ $lastSaleFiscalUrl }}" target="_blank" rel="noopener" class="btn blue-grey darken-2 waves-effect waves-light">
+                                <i class="material-icons left">receipt_long</i>Comprobante fiscal
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -3937,6 +4109,10 @@
                                         <i class="material-icons">add</i>
                                         Agregar
                                     </button>
+                                    <button id="btn_open_fiscal" type="button" class="payments-action-btn" title="Editar datos fiscales (F4)" @disabled(! $canOperate)>
+                                        <i class="material-icons">fact_check</i>
+                                        Datos fiscales
+                                    </button>
                                     <form method="POST" action="{{ route('caja.pagos.vaciar') }}">
                                         @csrf
                                         <input type="hidden" name="return_modal" value="pagos">
@@ -4022,7 +4198,36 @@
 
             <div class="card pos-sticky">
                 <div class="card-content">
-                    <form id="confirm_venta_form" method="POST" action="{{ route('caja.confirmar') }}">
+                    @php
+                        $availableFiscalActions = collect($fiscalUi['allowed_actions'] ?? [])
+                            ->filter(fn (array $option) => (bool) ($option['allowed'] ?? false));
+                        $selectedFiscalAction = old('accion_fiscal', $fiscalDraft['accion_fiscal'] ?? ($fiscalUi['default_action'] ?? \App\Domain\Ventas\Models\Venta::ACCION_FISCAL_SOLO_REGISTRO));
+                        if (! $availableFiscalActions->has($selectedFiscalAction)) {
+                            $selectedFiscalAction = $availableFiscalActions->keys()->first() ?? \App\Domain\Ventas\Models\Venta::ACCION_FISCAL_SOLO_REGISTRO;
+                        }
+                        $selectedFiscalOption = $availableFiscalActions->get($selectedFiscalAction, []);
+                        $receiverDocTypes = $fiscalUi['receiver_doc_types'] ?? [];
+                        $receiverVatConditions = $fiscalUi['receiver_vat_conditions'] ?? [];
+                        $selectedReceiverDocType = old('fiscal_receptor_doc_tipo', $fiscalDraft['fiscal_receptor_doc_tipo'] ?? 'CONSUMIDOR_FINAL');
+                        $selectedReceiverVatCondition = old('fiscal_receptor_condicion_iva', $fiscalDraft['fiscal_receptor_condicion_iva'] ?? 'CONSUMIDOR_FINAL');
+                        $selectedReceiverDocNumber = old('fiscal_receptor_doc_nro', $fiscalDraft['fiscal_receptor_doc_nro'] ?? '');
+                        $selectedReceiverName = old('fiscal_receptor_nombre', $fiscalDraft['fiscal_receptor_nombre'] ?? 'Consumidor Final');
+                        $selectedReceiverAddress = old('fiscal_receptor_domicilio', $fiscalDraft['fiscal_receptor_domicilio'] ?? '');
+                        $selectedExternalReference = old('referencia_comprobante_externo', $fiscalDraft['referencia_comprobante_externo'] ?? '');
+                        $shouldReopenFiscalModal = old('accion_fiscal') !== null
+                            || old('fiscal_receptor_doc_nro') !== null
+                            || old('fiscal_receptor_nombre') !== null
+                            || old('fiscal_receptor_domicilio') !== null
+                            || old('fiscal_receptor_condicion_iva') !== null
+                            || old('referencia_comprobante_externo') !== null;
+                    @endphp
+                    <form
+                        id="confirm_venta_form"
+                        method="POST"
+                        action="{{ route('caja.confirmar') }}"
+                        data-reopen-fiscal-modal="{{ $shouldReopenFiscalModal ? 'true' : 'false' }}"
+                        data-save-fiscal-draft-url="{{ route('caja.fiscal-draft.save') }}"
+                    >
                         @csrf
                         <input id="confirm_token_input" type="hidden" name="confirm_token" value="{{ $confirmToken }}">
                         <div class="controls">
@@ -4042,8 +4247,8 @@
                                 <span class="value">$ {{ $money($payments['saldo']) }}</span>
                             </div>
                             <div class="pos-summary-stat shortcut">
-                                <span class="pos-summary-label">Atajo</span>
-                                <span class="value">F5</span>
+                                <span class="pos-summary-label">Atajos</span>
+                                <span class="value">F4 / F5</span>
                             </div>
                             <div class="pos-summary-action">
                                 <button id="confirm_venta_btn" class="pos-confirm-btn waves-effect" type="submit" title="Confirmar venta (F5)" @disabled(! $canOperate)>
@@ -4051,6 +4256,192 @@
                                     <span @class(['pos-confirm-btn-text', 'is-disabled' => ! $canOperate])>
                                         {{ $canOperate ? 'Confirmar venta' : 'Caja no habilitada' }}
                                     </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="fiscal_confirm_modal" class="modal modal-fixed-footer pos-modal pos-fiscal-modal">
+                            <div class="modal-content">
+                                <div class="pos-modal-head">
+                                    <div class="pos-modal-head-card">
+                                        <div class="pos-modal-head-main">
+                                            <div class="pos-modal-head-copy">
+                                                <div class="pos-modal-icon-badge">
+                                                    <i class="material-icons">fact_check</i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="pos-modal-title">Datos fiscales</h4>
+                                                    <div class="pos-modal-subtitle">
+                                                        Ajustá el cierre fiscal de esta venta y guardá el borrador con `F4` para reutilizarlo más rápido.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <a href="#!" class="modal-close pos-modal-close" title="Cerrar">
+                                                <i class="material-icons">close</i>
+                                            </a>
+                                        </div>
+
+                                        <div class="pos-modal-summary-grid pos-fiscal-summary-grid">
+                                            <div class="pos-modal-summary-card">
+                                                <span class="pos-modal-summary-label">Total</span>
+                                                <strong class="pos-modal-summary-value">${{ $money($payments['total_cobrar']) }}</strong>
+                                            </div>
+                                            <div class="pos-modal-summary-card">
+                                                <span class="pos-modal-summary-label">Modo fiscal</span>
+                                                <strong class="pos-modal-summary-value">{{ $fiscalUi['mode_label'] ?? 'Solo registro' }}</strong>
+                                            </div>
+                                            <div class="pos-modal-summary-card">
+                                                <span class="pos-modal-summary-label">Clase sugerida</span>
+                                                <strong class="pos-modal-summary-value">{{ $fiscalUi['default_class'] ?? 'C' }}</strong>
+                                            </div>
+                                            <div class="pos-modal-summary-card">
+                                                <span class="pos-modal-summary-label">Punto de venta</span>
+                                                <strong class="pos-modal-summary-value">{{ $fiscalUi['punto_venta'] ?: 'Sin definir' }}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pos-modal-scroll pos-fiscal-modal-body">
+                                    <div class="pos-fiscal-modal-stack">
+                                        <section class="pos-fiscal-modal-card">
+                                            <div class="pos-fiscal-modal-head">
+                                                <div>
+                                                    <div class="pos-fiscal-modal-title">Acción fiscal</div>
+                                                    <div class="pos-fiscal-modal-subtitle">Por defecto se conserva la acción sugerida para la sucursal. Cambiala solo si esta venta necesita otro cierre.</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="input-field pos-fiscal-modal-field">
+                                                <select id="accion_fiscal_select" name="accion_fiscal">
+                                                    @foreach ($availableFiscalActions as $value => $option)
+                                                        <option value="{{ $value }}" data-note="{{ $option['help'] }}" @selected($selectedFiscalAction === $value)>
+                                                            {{ $option['label'] }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <label>Acción fiscal</label>
+                                            </div>
+
+                                            <div class="pos-fiscal-note">
+                                                <strong id="accion_fiscal_help" data-default-text="{{ $selectedFiscalOption['help'] ?? 'Elige cómo querés cerrar fiscalmente esta venta.' }}">
+                                                    {{ $selectedFiscalOption['help'] ?? 'Elige cómo querés cerrar fiscalmente esta venta.' }}
+                                                </strong>
+
+                                                <div class="pos-fiscal-meta">
+                                                    <span class="pos-fiscal-chip">
+                                                        <i class="material-icons">tune</i>{{ $fiscalUi['mode_label'] ?? 'Solo registro' }}
+                                                    </span>
+                                                    <span class="pos-fiscal-chip">
+                                                        <i class="material-icons">receipt</i>Clase sugerida {{ $fiscalUi['default_class'] ?? 'C' }}
+                                                    </span>
+                                                    <span class="pos-fiscal-chip">
+                                                        <i class="material-icons">point_of_sale</i>Pto. vta. {{ $fiscalUi['punto_venta'] ?: 'sin definir' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        <section
+                                            id="external_reference_field"
+                                            @class([
+                                                'pos-fiscal-modal-card',
+                                                'pos-fiscal-field',
+                                                'is-hidden' => $selectedFiscalAction !== \App\Domain\Ventas\Models\Venta::ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA,
+                                            ])
+                                        >
+                                            <div class="pos-fiscal-modal-head">
+                                                <div>
+                                                    <div class="pos-fiscal-modal-title">Referencia externa</div>
+                                                    <div class="pos-fiscal-modal-subtitle">Usala solo si la venta queda asociada a un comprobante emitido por fuera del sistema.</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="input-field pos-fiscal-modal-field">
+                                                <input
+                                                    id="referencia_comprobante_externo"
+                                                    type="text"
+                                                    name="referencia_comprobante_externo"
+                                                    value="{{ $selectedExternalReference }}"
+                                                >
+                                                <label for="referencia_comprobante_externo" class="active">Referencia comprobante externo</label>
+                                            </div>
+                                        </section>
+
+                                        <section
+                                            id="electronic_receiver_fields"
+                                            @class([
+                                                'pos-fiscal-modal-card',
+                                                'pos-fiscal-field',
+                                                'is-hidden' => $selectedFiscalAction !== \App\Domain\Ventas\Models\Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+                                            ])
+                                            data-requires-identification="{{ $receiverIdentificationRequired ? 'true' : 'false' }}"
+                                        >
+                                            <div class="pos-fiscal-modal-head">
+                                                <div>
+                                                    <div class="pos-fiscal-modal-title">Datos del receptor</div>
+                                                    <div class="pos-fiscal-modal-subtitle">
+                                                        @if ($receiverIdentificationRequired)
+                                                            Esta venta exige identificar al receptor antes de emitir.
+                                                        @else
+                                                            Consumidor Final queda precargado. Si te piden factura para empresa o cliente identificado, completalo acá y guardalo.
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="pos-fiscal-modal-grid">
+                                                <div class="input-field pos-fiscal-modal-field">
+                                                    <select id="fiscal_receptor_doc_tipo" name="fiscal_receptor_doc_tipo">
+                                                        @foreach ($receiverDocTypes as $value => $meta)
+                                                            <option value="{{ $value }}" @selected($selectedReceiverDocType === $value)>{{ $meta['label'] }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <label>Tipo doc. receptor</label>
+                                                </div>
+
+                                                <div class="input-field pos-fiscal-modal-field">
+                                                    <select id="fiscal_receptor_condicion_iva" name="fiscal_receptor_condicion_iva">
+                                                        @foreach ($receiverVatConditions as $value => $meta)
+                                                            <option value="{{ $value }}" @selected($selectedReceiverVatCondition === $value)>{{ $meta['label'] }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <label>Condición IVA receptor</label>
+                                                </div>
+
+                                                <div class="input-field pos-fiscal-modal-field">
+                                                    <input id="fiscal_receptor_doc_nro" type="text" name="fiscal_receptor_doc_nro" value="{{ $selectedReceiverDocNumber }}">
+                                                    <label for="fiscal_receptor_doc_nro" class="active">Número de documento</label>
+                                                </div>
+
+                                                <div class="input-field pos-fiscal-modal-field">
+                                                    <input id="fiscal_receptor_nombre" type="text" name="fiscal_receptor_nombre" value="{{ $selectedReceiverName }}">
+                                                    <label for="fiscal_receptor_nombre" class="active">Nombre o razón social</label>
+                                                </div>
+
+                                                <div class="input-field pos-fiscal-modal-field">
+                                                    <input id="fiscal_receptor_domicilio" type="text" name="fiscal_receptor_domicilio" value="{{ $selectedReceiverAddress }}">
+                                                    <label for="fiscal_receptor_domicilio" class="active">Domicilio</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="pos-fiscal-receiver-hint">
+                                                @if ($receiverIdentificationRequired)
+                                                    Se va a validar documento, condición IVA, nombre y domicilio antes de confirmar.
+                                                @else
+                                                    Si no cargás nada especial, el sistema queda listo para emitir a Consumidor Final.
+                                                @endif
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer pos-modal-footer">
+                                <a href="#!" class="modal-close btn-flat pos-modal-footer-btn is-secondary">Cancelar</a>
+                                <button id="save_fiscal_draft_btn" type="button" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
+                                    <i class="material-icons left">save</i>Aceptar datos fiscales
                                 </button>
                             </div>
                         </div>
@@ -4333,7 +4724,7 @@
                                 <div>
                                     <h4 class="pos-modal-title">Venta confirmada</h4>
                                     <div class="pos-modal-subtitle">
-                                        {{ $lastSale->codigo_sucursal ?: ('#'.$lastSale->id) }} · {{ $lastSale->created_at?->format('d/m/Y H:i') }} · {{ $lastSale->sucursal?->nombre ?: $branchName }}
+                                        {{ $lastSale->codigo_sucursal ?: ('#'.$lastSale->id) }} · {{ $lastSale->fecha?->format('d/m/Y H:i') }} · {{ $lastSale->sucursal?->nombre ?: $branchName }}
                                     </div>
                                 </div>
                             </div>
@@ -4362,6 +4753,12 @@
                                 <span class="venta-summary-label">Pagos registrados</span>
                                 <div class="venta-summary-value">{{ count($lastSaleView['payments']) }} forma(s)</div>
                             </div>
+                            @if ($lastSale->comprobantePrincipal)
+                                <div class="venta-summary-card is-meta">
+                                    <span class="venta-summary-label">Fiscal</span>
+                                    <div class="venta-summary-value">{{ $lastSale->comprobantePrincipal->estado_label }}</div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -4438,6 +4835,11 @@
 
                 <div class="modal-footer">
                     <a href="{{ route('caja.ticket', $lastSale) }}" class="btn-flat pos-modal-footer-btn is-secondary">Ver detalle</a>
+                    @if ($lastSaleFiscalUrl)
+                        <a href="{{ $lastSaleFiscalUrl }}" target="_blank" rel="noopener" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
+                            <i class="material-icons left">receipt_long</i>Comprobante fiscal
+                        </a>
+                    @endif
                     <a href="{{ $lastSalePrintUrl }}" target="_blank" rel="noopener" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
                         <i class="material-icons left">print</i>Ticket
                     </a>
@@ -4651,7 +5053,7 @@
 
                 const key = String(event.key || '').toUpperCase();
                 const isCloseShortcut = event.altKey && key === 'C';
-                const isPosShortcut = !event.altKey && ['F1', 'F2', 'F5'].includes(key);
+                const isPosShortcut = !event.altKey && ['F1', 'F2', 'F4', 'F5'].includes(key);
 
                 if (!isCloseShortcut && !isPosShortcut) {
                     return;
@@ -4688,6 +5090,14 @@
 
                 if (key === 'F2') {
                     const button = document.getElementById('btn_open_pagos');
+                    if (button && !button.disabled) {
+                        button.click();
+                    }
+                    return;
+                }
+
+                if (key === 'F4') {
+                    const button = document.getElementById('btn_open_fiscal');
                     if (button && !button.disabled) {
                         button.click();
                     }
@@ -4766,7 +5176,9 @@
                 '.pos-sticky .card-content',
             ].forEach((selector) => swapFromDocument(selector, nextDocument));
 
-            initSelects(document.getElementById('pago_modal') || document);
+            initSelects(document);
+            syncFiscalActionUi();
+            syncFiscalDraftSummary();
         }
 
         function restorePaymentModalScroll(scrollTop) {
@@ -4948,18 +5360,297 @@
             });
         }
 
+        function syncFiscalActionUi() {
+            const form = document.getElementById('confirm_venta_form');
+            const actionSelect = document.getElementById('accion_fiscal_select');
+            const externalField = document.getElementById('external_reference_field');
+            const externalInput = document.getElementById('referencia_comprobante_externo');
+            const receiverFields = document.getElementById('electronic_receiver_fields');
+            const receiverDocType = document.getElementById('fiscal_receptor_doc_tipo');
+            const receiverDocNumber = document.getElementById('fiscal_receptor_doc_nro');
+            const receiverName = document.getElementById('fiscal_receptor_nombre');
+            const receiverAddress = document.getElementById('fiscal_receptor_domicilio');
+            const helpEl = document.getElementById('accion_fiscal_help');
+
+            if (!form || !actionSelect) {
+                return;
+            }
+
+            const selectedOption = actionSelect.options[actionSelect.selectedIndex];
+            const currentAction = actionSelect.value;
+            const needsExternalReference = currentAction === 'FACTURA_EXTERNA_REFERENCIADA';
+            const needsElectronicReceiver = currentAction === 'FACTURA_ELECTRONICA';
+            const requiresIdentification = receiverFields?.dataset.requiresIdentification === 'true';
+            const selectedReceiverType = receiverDocType?.value || 'CONSUMIDOR_FINAL';
+            const identifiedReceiver = selectedReceiverType !== 'CONSUMIDOR_FINAL';
+
+            if (externalField) {
+                externalField.classList.toggle('is-hidden', !needsExternalReference);
+            }
+
+            if (externalInput) {
+                externalInput.required = needsExternalReference;
+            }
+
+            if (receiverFields) {
+                receiverFields.classList.toggle('is-hidden', !needsElectronicReceiver);
+            }
+
+            if (receiverDocNumber) {
+                receiverDocNumber.required = needsElectronicReceiver && identifiedReceiver;
+            }
+
+            if (receiverName) {
+                receiverName.required = needsElectronicReceiver && (requiresIdentification || identifiedReceiver);
+            }
+
+            if (receiverAddress) {
+                receiverAddress.required = needsElectronicReceiver && requiresIdentification;
+            }
+
+            if (helpEl) {
+                helpEl.textContent = selectedOption?.dataset.note || helpEl.dataset.defaultText || '';
+            }
+        }
+
+        function collectFiscalDraftState() {
+            return {
+                accion_fiscal: document.getElementById('accion_fiscal_select')?.value || 'SOLO_REGISTRO',
+                referencia_comprobante_externo: document.getElementById('referencia_comprobante_externo')?.value || '',
+                fiscal_receptor_doc_tipo: document.getElementById('fiscal_receptor_doc_tipo')?.value || 'CONSUMIDOR_FINAL',
+                fiscal_receptor_doc_nro: document.getElementById('fiscal_receptor_doc_nro')?.value || '',
+                fiscal_receptor_nombre: document.getElementById('fiscal_receptor_nombre')?.value || '',
+                fiscal_receptor_domicilio: document.getElementById('fiscal_receptor_domicilio')?.value || '',
+                fiscal_receptor_condicion_iva: document.getElementById('fiscal_receptor_condicion_iva')?.value || 'CONSUMIDOR_FINAL',
+            };
+        }
+
+        function applyFiscalDraftState(draft) {
+            if (!draft || typeof draft !== 'object') {
+                return;
+            }
+
+            const mappings = {
+                accion_fiscal: 'accion_fiscal_select',
+                referencia_comprobante_externo: 'referencia_comprobante_externo',
+                fiscal_receptor_doc_tipo: 'fiscal_receptor_doc_tipo',
+                fiscal_receptor_doc_nro: 'fiscal_receptor_doc_nro',
+                fiscal_receptor_nombre: 'fiscal_receptor_nombre',
+                fiscal_receptor_domicilio: 'fiscal_receptor_domicilio',
+                fiscal_receptor_condicion_iva: 'fiscal_receptor_condicion_iva',
+            };
+
+            Object.entries(mappings).forEach(([key, elementId]) => {
+                const element = document.getElementById(elementId);
+
+                if (!element || !Object.prototype.hasOwnProperty.call(draft, key)) {
+                    return;
+                }
+
+                element.value = draft[key] ?? '';
+            });
+
+            initSelects(document.getElementById('fiscal_confirm_modal') || document);
+            syncFiscalActionUi();
+            syncFiscalDraftSummary();
+        }
+
+        function syncReceiverDraftPreset() {
+            const receiverDocType = document.getElementById('fiscal_receptor_doc_tipo');
+            const receiverDocNumber = document.getElementById('fiscal_receptor_doc_nro');
+            const receiverName = document.getElementById('fiscal_receptor_nombre');
+            const receiverVatCondition = document.getElementById('fiscal_receptor_condicion_iva');
+
+            if (!receiverDocType) {
+                return;
+            }
+
+            if (receiverDocType.value === 'CONSUMIDOR_FINAL') {
+                if (receiverDocNumber) {
+                    receiverDocNumber.value = '';
+                }
+
+                if (receiverName && receiverName.value.trim() === '') {
+                    receiverName.value = 'Consumidor Final';
+                }
+
+                if (receiverVatCondition) {
+                    receiverVatCondition.value = 'CONSUMIDOR_FINAL';
+                }
+
+                initSelects(document.getElementById('fiscal_confirm_modal') || document);
+            }
+        }
+
+        function buildFiscalDraftSummary() {
+            const actionSelect = document.getElementById('accion_fiscal_select');
+            const receiverDocType = document.getElementById('fiscal_receptor_doc_tipo');
+            const receiverDocNumber = document.getElementById('fiscal_receptor_doc_nro');
+            const receiverName = document.getElementById('fiscal_receptor_nombre');
+            const receiverVatCondition = document.getElementById('fiscal_receptor_condicion_iva');
+            const externalReference = document.getElementById('referencia_comprobante_externo');
+            const actionLabel = actionSelect?.options[actionSelect.selectedIndex]?.textContent?.trim() || 'Solo registro';
+            const docTypeLabel = receiverDocType?.options[receiverDocType.selectedIndex]?.textContent?.trim() || 'Consumidor final';
+            const vatLabel = receiverVatCondition?.options[receiverVatCondition.selectedIndex]?.textContent?.trim() || 'Consumidor Final';
+            const receiverDoc = receiverDocNumber?.value?.trim() || '';
+            const receiverText = receiverName?.value?.trim() || 'Consumidor Final';
+            const currentAction = actionSelect?.value || 'SOLO_REGISTRO';
+
+            if (currentAction === 'FACTURA_EXTERNA_REFERENCIADA') {
+                return {
+                    line: actionLabel,
+                    meta: externalReference?.value?.trim() !== ''
+                        ? `Referencia guardada: ${externalReference.value.trim()}`
+                        : 'Pendiente de referencia externa. Presioná F4 para cargarla.',
+                };
+            }
+
+            if (currentAction === 'FACTURA_ELECTRONICA') {
+                if ((receiverDocType?.value || 'CONSUMIDOR_FINAL') === 'CONSUMIDOR_FINAL') {
+                    return {
+                        line: actionLabel,
+                        meta: 'Receptor guardado: Consumidor Final.',
+                    };
+                }
+
+                let meta = `Receptor guardado: ${receiverText}`;
+
+                if (receiverDoc !== '') {
+                    meta += ` · ${docTypeLabel} ${receiverDoc}`;
+                }
+
+                meta += ` · ${vatLabel}`;
+
+                return {
+                    line: actionLabel,
+                    meta,
+                };
+            }
+
+            return {
+                line: actionLabel,
+                meta: `Receptor guardado: ${receiverText}${receiverDoc !== '' ? ` · ${docTypeLabel} ${receiverDoc}` : ''}`,
+            };
+        }
+
+        function syncFiscalDraftSummary() {
+            const lineEl = document.getElementById('fiscal_draft_summary_line');
+            const metaEl = document.getElementById('fiscal_draft_summary_meta');
+            const summary = buildFiscalDraftSummary();
+
+            if (lineEl) {
+                lineEl.textContent = summary.line;
+            }
+
+            if (metaEl) {
+                metaEl.textContent = summary.meta;
+            }
+        }
+
+        async function persistFiscalDraft() {
+            const form = document.getElementById('confirm_venta_form');
+
+            if (!form) {
+                return null;
+            }
+
+            const response = await fetch(form.dataset.saveFiscalDraftUrl, {
+                method: 'POST',
+                body: new FormData(form),
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(payload.message || 'No se pudieron guardar los datos fiscales.');
+            }
+
+            return payload;
+        }
+
+        function focusFiscalModalPrimaryField() {
+            const dropdownInput = document.querySelector('#fiscal_confirm_modal .select-wrapper input.select-dropdown');
+
+            if (dropdownInput && typeof dropdownInput.focus === 'function') {
+                dropdownInput.focus();
+                return;
+            }
+
+            const actionSelect = document.getElementById('accion_fiscal_select');
+
+            if (actionSelect && typeof actionSelect.focus === 'function') {
+                actionSelect.focus();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+            let fiscalModalSnapshot = collectFiscalDraftState();
+            let fiscalModalSaved = false;
+
             initSelects(document);
             initNav();
             initScannerInput();
             initPosShortcuts();
             initAsyncModalAdd();
             initAsyncPaymentModal();
+            syncFiscalActionUi();
+            syncFiscalDraftSummary();
             showSessionToasts();
+
+            document.addEventListener('change', function (event) {
+                const target = event.target;
+
+                if (target && target.id === 'fiscal_receptor_doc_tipo') {
+                    syncReceiverDraftPreset();
+                }
+
+                if (target && [
+                    'accion_fiscal_select',
+                    'fiscal_receptor_doc_tipo',
+                    'fiscal_receptor_condicion_iva',
+                ].includes(target.id)) {
+                    syncFiscalActionUi();
+                    syncFiscalDraftSummary();
+                }
+            });
+
+            document.addEventListener('input', function (event) {
+                const target = event.target;
+
+                if (target && [
+                    'referencia_comprobante_externo',
+                    'fiscal_receptor_doc_nro',
+                    'fiscal_receptor_nombre',
+                    'fiscal_receptor_domicilio',
+                ].includes(target.id)) {
+                    syncFiscalDraftSummary();
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                const target = event.target;
+
+                if (
+                    event.key === 'Enter'
+                    && fiscalModalEl?.classList.contains('open')
+                    && target instanceof HTMLElement
+                    && target.closest('#fiscal_confirm_modal')
+                    && !target.closest('#save_fiscal_draft_btn')
+                    && target.tagName !== 'TEXTAREA'
+                ) {
+                    event.preventDefault();
+                }
+            });
 
             const buscarModalEl = document.getElementById('buscar_modal');
             const pagoModalEl = document.getElementById('pago_modal');
             const ventaModalEl = document.getElementById('venta_modal');
+            const fiscalModalEl = document.getElementById('fiscal_confirm_modal');
 
             if (window.M && M.Modal) {
                 [buscarModalEl, pagoModalEl, ventaModalEl].forEach((modalEl) => {
@@ -4973,6 +5664,31 @@
                         onOpenEnd: () => centerUiModal(modalEl),
                     });
                 });
+
+                if (fiscalModalEl) {
+                    M.Modal.init(fiscalModalEl, {
+                        dismissible: true,
+                        onOpenStart: () => {
+                            fiscalModalSaved = false;
+                            fiscalModalSnapshot = collectFiscalDraftState();
+                            centerUiModal(fiscalModalEl);
+                        },
+                        onOpenEnd: () => {
+                            centerUiModal(fiscalModalEl);
+                            focusFiscalModalPrimaryField();
+                        },
+                        onCloseEnd: () => {
+                            centerUiModal(fiscalModalEl);
+
+                            if (!fiscalModalSaved) {
+                                applyFiscalDraftState(fiscalModalSnapshot);
+                            } else {
+                                fiscalModalSnapshot = collectFiscalDraftState();
+                                syncFiscalDraftSummary();
+                            }
+                        },
+                    });
+                }
             }
 
             const openBuscarBtn = document.getElementById('btn_open_buscar');
@@ -4994,6 +5710,48 @@
                     openModalById('pago_modal');
                 });
             }
+
+            document.addEventListener('click', function (event) {
+                const target = event.target instanceof Element ? event.target : null;
+
+                if (!target) {
+                    return;
+                }
+
+                const openFiscalButton = target.closest('#btn_open_fiscal');
+                if (openFiscalButton) {
+                    event.preventDefault();
+                    openModalById('fiscal_confirm_modal');
+                    return;
+                }
+
+                const saveFiscalButton = target.closest('#save_fiscal_draft_btn');
+                if (!saveFiscalButton) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                if (saveFiscalButton instanceof HTMLButtonElement) {
+                    saveFiscalButton.disabled = true;
+                }
+
+                persistFiscalDraft()
+                    .then((payload) => {
+                        applyFiscalDraftState(payload?.draft || collectFiscalDraftState());
+                        fiscalModalSaved = true;
+                        showUiToast(payload?.message || 'Datos fiscales guardados.');
+                        M.Modal.getInstance(fiscalModalEl)?.close();
+                    })
+                    .catch((error) => {
+                        showUiToast(error.message || 'No se pudieron guardar los datos fiscales.', 'red darken-2');
+                    })
+                    .finally(() => {
+                        if (saveFiscalButton instanceof HTMLButtonElement) {
+                            saveFiscalButton.disabled = false;
+                        }
+                    });
+            });
 
             const clearSearchBtn = document.getElementById('q_modal_clear');
             if (clearSearchBtn) {
@@ -5028,10 +5786,17 @@
                 openModalById('venta_modal');
             }
 
+            const confirmSaleForm = document.getElementById('confirm_venta_form');
+            if (confirmSaleForm?.dataset.reopenFiscalModal === 'true') {
+                openModalById('fiscal_confirm_modal');
+                fiscalModalSaved = true;
+            }
+
             window.addEventListener('resize', function () {
                 centerUiModal(buscarModalEl);
                 centerUiModal(pagoModalEl);
                 centerUiModal(ventaModalEl);
+                centerUiModal(fiscalModalEl);
             });
         });
     </script>

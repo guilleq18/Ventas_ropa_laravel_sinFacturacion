@@ -72,6 +72,8 @@
                             <th>Fecha</th>
                             <th>Sucursal</th>
                             <th>Estado</th>
+                            <th>Fiscal</th>
+                            <th>Estado fiscal</th>
                             <th>Medio</th>
                             <th class="right-align">Total</th>
                             <th></th>
@@ -84,6 +86,8 @@
                                 <td data-label="Fecha">{{ $venta->fecha?->format('d/m/Y') ?? '-' }}</td>
                                 <td data-label="Sucursal">{{ $venta->sucursal?->nombre ?? '-' }}</td>
                                 <td data-label="Estado">{{ $estados[$venta->estado] ?? $venta->estado }}</td>
+                                <td data-label="Fiscal">{{ $venta->accion_fiscal_label }}</td>
+                                <td data-label="Estado fiscal">{{ $venta->estado_fiscal_label }}</td>
                                 <td data-label="Medio">{{ $venta->medio_pago_ui }}</td>
                                 <td data-label="Total" class="right-align">{{ $money($venta->total) }}</td>
                                 <td data-label="Acciones" class="right-align">
@@ -92,12 +96,15 @@
                                         @if ($venta->estado === \App\Domain\Ventas\Models\Venta::ESTADO_CONFIRMADA)
                                             <a class="btn-small grey lighten-1 black-text" href="{{ route('caja.ticket', $venta) }}?print=1" target="_blank" rel="noopener">Ticket</a>
                                         @endif
+                                        @if ($venta->comprobantePrincipal?->es_imprimible)
+                                            <a class="btn-small blue-grey darken-2" href="{{ route('fiscal.comprobantes.show', $venta->comprobantePrincipal) }}?print=1" target="_blank" rel="noopener">Fiscal</a>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="grey-text">Sin resultados.</td>
+                                <td colspan="9" class="grey-text">Sin resultados.</td>
                             </tr>
                         @endforelse
                     </tbody>

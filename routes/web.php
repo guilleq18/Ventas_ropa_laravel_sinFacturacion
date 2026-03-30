@@ -16,6 +16,7 @@ use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Caja\TicketController;
 use App\Http\Controllers\CuentasCorrientes\ClienteController;
 use App\Http\Controllers\CuentasCorrientes\CuentaCorrienteController;
+use App\Http\Controllers\Fiscal\ComprobanteController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -87,9 +88,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/pagos/vaciar', [CajaController::class, 'clearPayments'])->name('pagos.vaciar');
         Route::post('/pagos/{index}', [CajaController::class, 'updatePayment'])->name('pagos.update');
         Route::post('/pagos/{index}/quitar', [CajaController::class, 'deletePayment'])->name('pagos.quitar');
+        Route::post('/fiscal-draft', [CajaController::class, 'saveFiscalDraft'])->name('fiscal-draft.save');
         Route::post('/confirmar', [CajaController::class, 'confirmSale'])->name('confirmar');
         Route::post('/confirmar-preview', [CajaController::class, 'confirmSale'])->name('confirmar.preview');
         Route::get('/ticket/{venta}', TicketController::class)->name('ticket');
+    });
+
+    Route::prefix('fiscal')->name('fiscal.')->group(function (): void {
+        Route::get('/comprobantes/{ventaComprobante}', ComprobanteController::class)->name('comprobantes.show');
     });
 
     Route::prefix('admin-panel')->name('admin-panel.')->group(function (): void {
@@ -99,6 +105,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/balances', [AdminBalancesController::class, 'index'])->name('balances.index');
         Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings.index');
         Route::put('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
+        Route::post('/settings/arca/generate-csr', [AdminSettingsController::class, 'generateArcaCsr'])->name('settings.arca.generate-csr');
+        Route::post('/settings/arca/upload-certificate', [AdminSettingsController::class, 'uploadArcaCertificate'])->name('settings.arca.upload-certificate');
+        Route::post('/settings/arca/validate-credentials', [AdminSettingsController::class, 'validateArcaCredentials'])->name('settings.arca.validate-credentials');
+        Route::post('/settings/arca/probe', [AdminSettingsController::class, 'probeArca'])->name('settings.arca.probe');
         Route::get('/empresa', [AdminEmpresaController::class, 'index'])->name('empresa.index');
         Route::put('/empresa', [AdminEmpresaController::class, 'updateCompany'])->name('empresa.update');
         Route::post('/sucursales', [AdminEmpresaController::class, 'storeBranch'])->name('sucursales.store');

@@ -17,6 +17,11 @@
                 <i class="material-icons left">print</i>Reimprimir ticket
             </a>
         @endif
+        @if ($venta->comprobantePrincipal?->es_imprimible)
+            <a class="btn blue-grey darken-2" href="{{ route('fiscal.comprobantes.show', $venta->comprobantePrincipal) }}?print=1" target="_blank" rel="noopener" style="margin-left:8px;">
+                <i class="material-icons left">receipt_long</i>Comprobante fiscal
+            </a>
+        @endif
     </div>
 
     <div class="row">
@@ -28,6 +33,8 @@
                     <p><b>Código:</b> {{ $venta->codigo_sucursal }}</p>
                     <p><b>Sucursal:</b> {{ $venta->sucursal?->nombre ?? '-' }}</p>
                     <p><b>Estado:</b> {{ ucfirst(strtolower($venta->estado)) }}</p>
+                    <p><b>Acción fiscal:</b> {{ $venta->accion_fiscal_label }}</p>
+                    <p><b>Estado fiscal:</b> {{ $venta->estado_fiscal_label }}</p>
                     <p><b>Medios de pago:</b> {{ $medio_pago_ui }}</p>
                     @if ($venta->cliente)
                         <p><b>Cliente:</b> {{ $venta->cliente->nombre_completo ?? 'Consumidor final' }}</p>
@@ -37,6 +44,24 @@
                     <p><b>Total final:</b> {{ $money($venta->total) }}</p>
                 </div>
             </div>
+
+            @if ($venta->comprobantePrincipal)
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Comprobante principal</span>
+                        <p><b>Modo:</b> {{ $venta->comprobantePrincipal->modo_emision }}</p>
+                        <p><b>Estado:</b> {{ $venta->comprobantePrincipal->estado }}</p>
+                        <p><b>Clase:</b> {{ $venta->comprobantePrincipal->clase ?: '-' }}</p>
+                        <p><b>Punto de venta:</b> {{ $venta->comprobantePrincipal->punto_venta ?: '-' }}</p>
+                        <p><b>Número:</b> {{ $venta->comprobantePrincipal->numero_completo ?: '-' }}</p>
+                        <p><b>CAE:</b> {{ $venta->comprobantePrincipal->cae ?: '-' }}</p>
+                        <p><b>Vto. CAE:</b> {{ $venta->comprobantePrincipal->cae_vto?->format('d/m/Y') ?: '-' }}</p>
+                        @if ($venta->comprobantePrincipal->referencia_externa_numero)
+                            <p><b>Referencia externa:</b> {{ $venta->comprobantePrincipal->referencia_externa_numero }}</p>
+                        @endif
+                    </div>
+                </div>
+            @endif
 
             <div class="card">
                 <div class="card-content">

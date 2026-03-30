@@ -27,7 +27,7 @@ class AdminVentasController extends Controller
         $estado = trim((string) $request->query('estado', ''));
 
         $query = Venta::query()
-            ->with(['sucursal', 'pagos'])
+            ->with(['sucursal', 'pagos', 'comprobantePrincipal'])
             ->when($from, function (Builder $builder) use ($from): void {
                 $builder->where('fecha', '>=', CarbonImmutable::parse($from)->startOfDay());
             })
@@ -88,6 +88,7 @@ class AdminVentasController extends Controller
             'items.variante.atributos.atributo',
             'items.variante.atributos.valor',
             'pagos.plan',
+            'comprobantePrincipal',
         ]);
 
         $items = $venta->items->map(function ($item) use ($reportService) {

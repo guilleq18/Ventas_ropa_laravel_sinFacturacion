@@ -10,6 +10,10 @@ use App\Domain\Catalogo\Models\StockSucursal;
 use App\Domain\Catalogo\Models\Variante;
 use App\Domain\Core\Models\AppSetting;
 use App\Domain\Core\Models\Sucursal;
+use App\Domain\Fiscal\Models\SucursalFiscalConfig;
+use App\Domain\Fiscal\Models\VentaComprobante;
+use App\Domain\Fiscal\Support\FiscalConfigManager;
+use App\Domain\Fiscal\Support\FiscalDocumentBuilder;
 use App\Domain\CuentasCorrientes\Models\Cliente;
 use App\Domain\CuentasCorrientes\Models\CuentaCorriente;
 use App\Domain\CuentasCorrientes\Models\MovimientoCuentaCorriente;
@@ -130,6 +134,86 @@ class CajaPosWorkflowTest extends TestCase
             ->assertSee('disabled', false);
     }
 
+    public function test_pos_renders_fiscal_draft_modal_and_f4_shortcut_when_receiver_data_is_required(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+        $variant = $this->createVariantFixture($branch, '100.00', 5);
+
+        SucursalFiscalConfig::query()->create([
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 3,
+            'facturacion_habilitada' => true,
+            'requiere_receptor_en_todas' => true,
+        ]);
+
+        $this->actingAs($user)->post(route('caja.abrir'));
+        $this->actingAs($user)->post(route('caja.carrito.agregar', $variant));
+        $this->actingAs($user)->post(route('caja.pagos.agregar'));
+        $this->actingAs($user)->post(route('caja.pagos.update', 0), [
+            'tipo' => 'CONTADO',
+            'monto' => '100.00',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('caja.pos'))
+            ->assertOk()
+            ->assertSee('id="fiscal_confirm_modal"', false)
+            ->assertSee('data-save-fiscal-draft-url=', false)
+            ->assertSee('id="btn_open_fiscal"', false)
+            ->assertSee('type="submit" title="Confirmar venta (F5)"', false)
+            ->assertSee('Datos fiscales')
+            ->assertSee('Condición IVA receptor')
+            ->assertSee('Aceptar datos fiscales')
+            ->assertSee('Se va a validar documento, condición IVA, nombre y domicilio antes de confirmar.')
+            ->assertDontSee('Borrador fiscal activo')
+            ->assertDontSee('Solicita autorización a ARCA, guarda CAE y genera el comprobante fiscal imprimible.');
+    }
+
+    public function test_cashier_can_save_fiscal_draft_for_reuse(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+
+        SucursalFiscalConfig::query()->create([
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 3,
+            'facturacion_habilitada' => true,
+            'requiere_receptor_en_todas' => false,
+        ]);
+
+        $this->actingAs($user)->post(route('caja.abrir'));
+
+        $this->actingAs($user)
+            ->postJson(route('caja.fiscal-draft.save'), [
+                'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+                'fiscal_receptor_doc_tipo' => 'CUIT',
+                'fiscal_receptor_doc_nro' => '30712345678',
+                'fiscal_receptor_nombre' => 'Empresa Demo SA',
+                'fiscal_receptor_domicilio' => 'Mitre 123',
+                'fiscal_receptor_condicion_iva' => 'IVA_RESPONSABLE_INSCRIPTO',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+            ])
+            ->assertJsonPath('draft.accion_fiscal', Venta::ACCION_FISCAL_FACTURA_ELECTRONICA)
+            ->assertJsonPath('draft.fiscal_receptor_doc_tipo', 'CUIT')
+            ->assertJsonPath('draft.fiscal_receptor_condicion_iva', 'IVA_RESPONSABLE_INSCRIPTO');
+
+        $this->assertSame([
+            'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+            'referencia_comprobante_externo' => '',
+            'fiscal_receptor_doc_tipo' => 'CUIT',
+            'fiscal_receptor_doc_nro' => '30712345678',
+            'fiscal_receptor_nombre' => 'Empresa Demo SA',
+            'fiscal_receptor_domicilio' => 'Mitre 123',
+            'fiscal_receptor_condicion_iva' => 'IVA_RESPONSABLE_INSCRIPTO',
+        ], $this->app['session.store']->get('pos_fiscal_draft'));
+    }
+
     public function test_confirming_sale_persists_sale_stock_and_current_account_movement(): void
     {
         [$user, $branch] = $this->createCashierWithBranch();
@@ -216,6 +300,10 @@ class CajaPosWorkflowTest extends TestCase
         $this->assertNotSame($token, $newToken);
         $this->assertSame(Venta::ESTADO_CONFIRMADA, $sale->estado);
         $this->assertSame(Venta::MEDIO_PAGO_MIXTO, $sale->medio_pago);
+        $this->assertSame(Venta::ACCION_FISCAL_SOLO_REGISTRO, $sale->accion_fiscal);
+        $this->assertSame(Venta::ESTADO_FISCAL_NO_REQUERIDO, $sale->estado_fiscal);
+        $this->assertFalse($sale->tiene_comprobante_fiscal);
+        $this->assertNull($sale->venta_comprobante_principal_id);
         $this->assertSame($client->id, $sale->cliente_id);
         $this->assertSame('105.00', $sale->total);
         $this->assertSame('Tienda Urbana', $sale->empresa_nombre_snapshot);
@@ -241,6 +329,7 @@ class CajaPosWorkflowTest extends TestCase
         ]);
         $this->assertSame([], $this->app['session.store']->get('pos_cart', []));
         $this->assertSame([], $this->app['session.store']->get('pos_payments', []));
+        $this->assertDatabaseCount('venta_comprobantes', 0);
 
         $this->actingAs($user)
             ->get(route('caja.pos'))
@@ -325,6 +414,356 @@ class CajaPosWorkflowTest extends TestCase
             'variante_id' => $variant->id,
             'cantidad' => 5,
         ]);
+    }
+
+    public function test_confirming_sale_can_store_external_referenced_invoice_data(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+        $variant = $this->createVariantFixture($branch, '100.00', 5);
+
+        SucursalFiscalConfig::query()->create([
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 3,
+            'facturacion_habilitada' => false,
+        ]);
+
+        $this->actingAs($user)->post(route('caja.abrir'));
+        $this->actingAs($user)->post(route('caja.carrito.agregar', $variant));
+        $this->actingAs($user)->post(route('caja.pagos.agregar'));
+        $this->actingAs($user)->post(route('caja.pagos.update', 0), [
+            'tipo' => 'CONTADO',
+            'monto' => '100.00',
+        ]);
+
+        $token = $this->app['session.store']->get('pos_confirm_token');
+
+        $this->actingAs($user)
+            ->post(route('caja.confirmar'), [
+                'confirm_token' => $token,
+                'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA,
+                'referencia_comprobante_externo' => 'CLI-0003-00001234',
+            ])
+            ->assertRedirect(route('caja.pos'))
+            ->assertSessionHas('success');
+
+        $sale = Venta::query()->with('comprobantePrincipal')->firstOrFail();
+
+        $this->assertSame(Venta::ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA, $sale->accion_fiscal);
+        $this->assertSame(Venta::ESTADO_FISCAL_EXTERNO_REFERENCIADO, $sale->estado_fiscal);
+        $this->assertTrue($sale->tiene_comprobante_fiscal);
+        $this->assertNotNull($sale->venta_comprobante_principal_id);
+        $this->assertSame(VentaComprobante::MODO_EXTERNA_REFERENCIADA, $sale->comprobantePrincipal?->modo_emision);
+        $this->assertSame(VentaComprobante::ESTADO_REFERENCIADO, $sale->comprobantePrincipal?->estado);
+        $this->assertSame('CLI-0003-00001234', $sale->comprobantePrincipal?->referencia_externa_numero);
+        $this->assertDatabaseHas('venta_comprobantes', [
+            'venta_id' => $sale->id,
+            'modo_emision' => VentaComprobante::MODO_EXTERNA_REFERENCIADA,
+            'estado' => VentaComprobante::ESTADO_REFERENCIADO,
+            'referencia_externa_numero' => 'CLI-0003-00001234',
+        ]);
+    }
+
+    public function test_confirming_sale_can_authorize_electronic_invoice_and_expose_printable_document(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+        $variant = $this->createVariantFixture($branch, '12100.00', 5);
+
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.nombre'],
+            ['value_str' => 'Tienda Urbana', 'description' => 'Nombre comercial'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.razon_social'],
+            ['value_str' => 'Tienda Urbana SRL', 'description' => 'Razón social'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.cuit'],
+            ['value_str' => '30-12345678-9', 'description' => 'CUIT'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.direccion'],
+            ['value_str' => 'Av. Siempre Viva 742', 'description' => 'Dirección'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.condicion_fiscal'],
+            ['value_str' => 'RESPONSABLE_INSCRIPTO', 'description' => 'Condición fiscal'],
+        );
+
+        SucursalFiscalConfig::query()->create([
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 3,
+            'facturacion_habilitada' => true,
+            'requiere_receptor_en_todas' => false,
+        ]);
+
+        $this->actingAs($user)->post(route('caja.abrir'));
+        $this->actingAs($user)->post(route('caja.carrito.agregar', $variant));
+        $this->actingAs($user)->post(route('caja.pagos.agregar'));
+        $this->actingAs($user)->post(route('caja.pagos.update', 0), [
+            'tipo' => 'CONTADO',
+            'monto' => '12100.00',
+        ]);
+
+        $token = $this->app['session.store']->get('pos_confirm_token');
+
+        $this->actingAs($user)
+            ->post(route('caja.confirmar'), [
+                'confirm_token' => $token,
+                'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+                'fiscal_receptor_doc_tipo' => 'DNI',
+                'fiscal_receptor_doc_nro' => '30111222',
+                'fiscal_receptor_nombre' => 'Ana Lopez',
+                'fiscal_receptor_domicilio' => 'Belgrano 123',
+            ])
+            ->assertRedirect(route('caja.pos'))
+            ->assertSessionHas('success');
+
+        $sale = Venta::query()->with('comprobantePrincipal')->firstOrFail();
+        $document = $sale->comprobantePrincipal;
+
+        $this->assertSame(Venta::ACCION_FISCAL_FACTURA_ELECTRONICA, $sale->accion_fiscal);
+        $this->assertSame(Venta::ESTADO_FISCAL_AUTORIZADO, $sale->estado_fiscal);
+        $this->assertTrue($sale->tiene_comprobante_fiscal);
+        $this->assertNotNull($document);
+        $this->assertSame(VentaComprobante::MODO_ELECTRONICA_ARCA, $document?->modo_emision);
+        $this->assertSame(VentaComprobante::ESTADO_AUTORIZADO, $document?->estado);
+        $this->assertSame('B', $document?->clase);
+        $this->assertSame(6, $document?->codigo_arca);
+        $this->assertSame(3, $document?->punto_venta);
+        $this->assertSame('99990000123456', $document?->cae);
+        $this->assertNotNull($document?->qr_url);
+        $this->assertStringContainsString('https://www.arca.gob.ar/fe/qr/?p=', (string) $document?->qr_url);
+
+        $this->actingAs($user)
+            ->get(route('caja.pos'))
+            ->assertOk()
+            ->assertSee(route('fiscal.comprobantes.show', $document).'?print=1');
+
+        $this->actingAs($user)
+            ->get(route('fiscal.comprobantes.show', $document))
+            ->assertOk()
+            ->assertSee('Factura B')
+            ->assertSee('99990000123456');
+    }
+
+    public function test_electronic_invoice_defaults_to_consumer_final_vat_condition_when_receiver_data_is_not_provided(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+        $variant = $this->createVariantFixture($branch, '100.00', 5);
+
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.nombre'],
+            ['value_str' => 'Tienda Urbana', 'description' => 'Nombre comercial'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.razon_social'],
+            ['value_str' => 'Tienda Urbana', 'description' => 'Razón social'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.cuit'],
+            ['value_str' => '20-36436263-4', 'description' => 'CUIT'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.direccion'],
+            ['value_str' => 'Belgrano 123', 'description' => 'Dirección'],
+        );
+
+        SucursalFiscalConfig::query()->create([
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 3,
+            'facturacion_habilitada' => true,
+            'requiere_receptor_en_todas' => false,
+        ]);
+
+        $this->actingAs($user)->post(route('caja.abrir'));
+        $this->actingAs($user)->post(route('caja.carrito.agregar', $variant));
+        $this->actingAs($user)->post(route('caja.pagos.agregar'));
+        $this->actingAs($user)->post(route('caja.pagos.update', 0), [
+            'tipo' => 'CONTADO',
+            'monto' => '100.00',
+        ]);
+
+        $token = $this->app['session.store']->get('pos_confirm_token');
+
+        $this->actingAs($user)
+            ->post(route('caja.confirmar'), [
+                'confirm_token' => $token,
+                'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+            ])
+            ->assertRedirect(route('caja.pos'))
+            ->assertSessionHas('success');
+
+        $sale = Venta::query()->with('comprobantePrincipal')->latest('id')->firstOrFail();
+        $document = $sale->comprobantePrincipal;
+
+        $this->assertSame(Venta::ESTADO_FISCAL_AUTORIZADO, $sale->estado_fiscal);
+        $this->assertNotNull($document);
+        $this->assertSame(99, $document?->doc_tipo_receptor);
+        $this->assertSame('0', $document?->doc_nro_receptor);
+        $this->assertSame('Consumidor Final', $document?->receptor_nombre);
+        $this->assertSame('Consumidor Final', $document?->receptor_condicion_iva);
+        $this->assertSame(5, data_get($document?->request_payload_json, 'wsfe_request.detail.CondicionIVAReceptorId'));
+        $this->assertSame(5, data_get($document?->request_payload_json, 'receptor.condicion_iva_id'));
+    }
+
+    public function test_authorized_invoice_releases_number_reserved_by_previous_rejected_document(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+        $variant = $this->createVariantFixture($branch, '100.00', 5);
+
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.nombre'],
+            ['value_str' => 'Tienda Urbana', 'description' => 'Nombre comercial'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.razon_social'],
+            ['value_str' => 'Tienda Urbana', 'description' => 'Razón social'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.cuit'],
+            ['value_str' => '20-36436263-4', 'description' => 'CUIT'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.direccion'],
+            ['value_str' => 'Belgrano 123', 'description' => 'Dirección'],
+        );
+
+        SucursalFiscalConfig::query()->create([
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 3,
+            'facturacion_habilitada' => true,
+            'requiere_receptor_en_todas' => false,
+        ]);
+
+        $oldSale = Venta::query()->create([
+            'sucursal_id' => $branch->id,
+            'estado' => Venta::ESTADO_CONFIRMADA,
+            'medio_pago' => Venta::MEDIO_PAGO_EFECTIVO,
+            'total' => '100.00',
+            'numero_sucursal' => 1,
+        ]);
+
+        $oldDocument = VentaComprobante::query()->create([
+            'venta_id' => $oldSale->id,
+            'sucursal_id' => $branch->id,
+            'modo_emision' => VentaComprobante::MODO_ELECTRONICA_ARCA,
+            'estado' => VentaComprobante::ESTADO_RECHAZADO,
+            'tipo_comprobante' => VentaComprobante::TIPO_FACTURA,
+            'clase' => 'C',
+            'codigo_arca' => 11,
+            'punto_venta' => 3,
+            'numero_comprobante' => 1,
+            'fecha_emision' => now(),
+            'moneda' => 'PES',
+            'cotizacion_moneda' => '1.000000',
+            'doc_tipo_receptor' => 99,
+            'doc_nro_receptor' => '0',
+            'receptor_nombre' => 'Consumidor Final',
+            'receptor_condicion_iva' => 'Consumidor Final',
+            'importe_neto' => '100.00',
+            'importe_iva' => '0.00',
+            'importe_otros_tributos' => '0.00',
+            'importe_total' => '100.00',
+            'resultado_arca' => 'R',
+            'response_payload_json' => ['observations' => []],
+            'request_payload_json' => ['point_of_sale' => 3],
+        ]);
+
+        $this->actingAs($user)->post(route('caja.abrir'));
+        $this->actingAs($user)->post(route('caja.carrito.agregar', $variant));
+        $this->actingAs($user)->post(route('caja.pagos.agregar'));
+        $this->actingAs($user)->post(route('caja.pagos.update', 0), [
+            'tipo' => 'CONTADO',
+            'monto' => '100.00',
+        ]);
+
+        $token = $this->app['session.store']->get('pos_confirm_token');
+
+        $this->actingAs($user)
+            ->post(route('caja.confirmar'), [
+                'confirm_token' => $token,
+                'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+            ])
+            ->assertRedirect(route('caja.pos'))
+            ->assertSessionHas('success');
+
+        $newDocument = VentaComprobante::query()
+            ->whereKeyNot($oldDocument->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertSame(VentaComprobante::ESTADO_AUTORIZADO, $newDocument->estado);
+        $this->assertSame(3, $newDocument->punto_venta);
+        $this->assertSame(11, $newDocument->codigo_arca);
+        $this->assertSame(1, $newDocument->numero_comprobante);
+        $this->assertNull($oldDocument->fresh()->numero_comprobante);
+        $this->assertSame(VentaComprobante::ESTADO_RECHAZADO, $oldDocument->fresh()->estado);
+    }
+
+    public function test_electronic_invoice_uses_represented_cuit_from_arca_credentials_when_company_cuit_is_invalid(): void
+    {
+        [$user, $branch] = $this->createCashierWithBranch();
+
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'empresa.cuit'],
+            ['value_str' => '306525412', 'description' => 'CUIT'],
+        );
+        AppSetting::query()->updateOrCreate(
+            ['key' => 'fiscal.arca.represented_cuit'],
+            ['value_str' => '20364362634', 'description' => 'CUIT representado para ARCA'],
+        );
+
+        SucursalFiscalConfig::query()->create([
+            'sucursal_id' => $branch->id,
+            'modo_operacion' => SucursalFiscalConfig::MODO_FACTURAR_SI_SE_SOLICITA,
+            'entorno' => SucursalFiscalConfig::ENTORNO_HOMOLOGACION,
+            'punto_venta' => 3,
+            'facturacion_habilitada' => true,
+            'requiere_receptor_en_todas' => false,
+        ]);
+
+        $variant = $this->createVariantFixture($branch, '12100.00', 3);
+        $this->actingAs($user)->post(route('caja.abrir'));
+        $this->actingAs($user)->post(route('caja.carrito.agregar', $variant));
+        $this->actingAs($user)->post(route('caja.pagos.agregar'));
+        $this->actingAs($user)->post(route('caja.pagos.update', 0), [
+            'tipo' => 'CONTADO',
+            'monto' => '12100.00',
+        ]);
+
+        $token = $this->app['session.store']->get('pos_confirm_token');
+
+        $this->actingAs($user)
+            ->post(route('caja.confirmar'), [
+                'confirm_token' => $token,
+                'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+                'fiscal_receptor_doc_tipo' => 'DNI',
+                'fiscal_receptor_doc_nro' => '30111222',
+                'fiscal_receptor_nombre' => 'Ana Lopez',
+                'fiscal_receptor_domicilio' => 'Belgrano 123',
+            ])
+            ->assertRedirect(route('caja.pos'))
+            ->assertSessionHas('success');
+
+        $sale = Venta::query()->with('comprobantePrincipal')->latest('id')->firstOrFail();
+        $ui = app(FiscalConfigManager::class)->branchUi($branch);
+        $context = app(FiscalDocumentBuilder::class)->buildElectronicInvoiceContext($sale, $ui, [
+            'fiscal_receptor_doc_tipo' => 'DNI',
+            'fiscal_receptor_doc_nro' => '30111222',
+            'fiscal_receptor_nombre' => 'Ana Lopez',
+            'fiscal_receptor_domicilio' => 'Belgrano 123',
+        ]);
+
+        $this->assertSame('20364362634', $sale->empresa_cuit_snapshot);
+        $this->assertSame(20364362634, data_get($context, 'wsfe.auth.cuit'));
     }
 
     public function test_closing_cash_register_clears_state_and_shows_summary(): void

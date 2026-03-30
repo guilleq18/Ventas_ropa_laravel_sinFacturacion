@@ -8,6 +8,7 @@ use App\Domain\Catalogo\Support\CatalogoManager;
 use App\Domain\Core\Models\Sucursal;
 use App\Domain\CuentasCorrientes\Models\CuentaCorriente;
 use App\Domain\Ventas\Models\PlanCuotas;
+use App\Domain\Ventas\Models\Venta;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use DomainException;
@@ -19,6 +20,7 @@ class PosSessionStore
     public const string CART_KEY = 'pos_cart';
     public const string PAYMENTS_KEY = 'pos_payments';
     public const string CONFIRM_TOKEN_KEY = 'pos_confirm_token';
+    public const string FISCAL_DRAFT_KEY = 'pos_fiscal_draft';
     public const string CLOSE_SUMMARY_KEY = 'pos_caja_cierre_resumen';
 
     public const array PAYMENT_TYPES = [
@@ -88,6 +90,52 @@ class PosSessionStore
     {
         $this->saveCart($request, []);
         $this->savePayments($request, []);
+    }
+
+    public function fiscalDraft(Request $request, array $defaults = []): array
+    {
+        $base = $this->normalizeFiscalDraft($defaults);
+        $stored = $request->session()->get(self::FISCAL_DRAFT_KEY, []);
+
+        if (! is_array($stored)) {
+            $stored = [];
+        }
+
+        return $this->normalizeFiscalDraft([
+            ...$base,
+            ...$stored,
+        ]);
+    }
+
+    public function saveFiscalDraft(Request $request, array $draft, array $defaults = []): array
+    {
+        $stored = $this->normalizeFiscalDraft([
+            ...$this->fiscalDraft($request, $defaults),
+            ...$draft,
+        ]);
+
+        $request->session()->put(self::FISCAL_DRAFT_KEY, $stored);
+
+        return $stored;
+    }
+
+    public function prepareFiscalDraftForNextSale(Request $request, array $defaults = []): array
+    {
+        $current = $this->fiscalDraft($request, $defaults);
+        $base = $this->normalizeFiscalDraft($defaults);
+
+        $next = $this->normalizeFiscalDraft([
+            ...$base,
+            'fiscal_receptor_doc_tipo' => $current['fiscal_receptor_doc_tipo'],
+            'fiscal_receptor_doc_nro' => $current['fiscal_receptor_doc_nro'],
+            'fiscal_receptor_nombre' => $current['fiscal_receptor_nombre'],
+            'fiscal_receptor_domicilio' => $current['fiscal_receptor_domicilio'],
+            'fiscal_receptor_condicion_iva' => $current['fiscal_receptor_condicion_iva'],
+        ]);
+
+        $request->session()->put(self::FISCAL_DRAFT_KEY, $next);
+
+        return $next;
     }
 
     public function paymentTypeOptions(): array
@@ -670,6 +718,35 @@ class PosSessionStore
     protected function moneyString(mixed $value): string
     {
         return $this->money($value)->toScale(2, RoundingMode::HALF_UP)->__toString();
+    }
+
+    protected function normalizeFiscalDraft(array $draft): array
+    {
+        $docType = strtoupper(trim((string) ($draft['fiscal_receptor_doc_tipo'] ?? '')));
+        $vatCondition = strtoupper(trim((string) ($draft['fiscal_receptor_condicion_iva'] ?? '')));
+        $receiverName = trim((string) ($draft['fiscal_receptor_nombre'] ?? ''));
+
+        if ($docType === '') {
+            $docType = 'CONSUMIDOR_FINAL';
+        }
+
+        if ($vatCondition === '') {
+            $vatCondition = 'CONSUMIDOR_FINAL';
+        }
+
+        if ($receiverName === '' && $docType === 'CONSUMIDOR_FINAL') {
+            $receiverName = 'Consumidor Final';
+        }
+
+        return [
+            'accion_fiscal' => Venta::normalizeFiscalAction((string) ($draft['accion_fiscal'] ?? '')),
+            'referencia_comprobante_externo' => trim((string) ($draft['referencia_comprobante_externo'] ?? '')),
+            'fiscal_receptor_doc_tipo' => $docType,
+            'fiscal_receptor_doc_nro' => preg_replace('/\D+/', '', (string) ($draft['fiscal_receptor_doc_nro'] ?? '')) ?: '',
+            'fiscal_receptor_nombre' => $receiverName,
+            'fiscal_receptor_domicilio' => trim((string) ($draft['fiscal_receptor_domicilio'] ?? '')),
+            'fiscal_receptor_condicion_iva' => $vatCondition,
+        ];
     }
 
     protected function addMoney(mixed $left, mixed $right): string

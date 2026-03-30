@@ -76,6 +76,22 @@
             color: var(--muted);
         }
 
+        .document-flag {
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            color: #b42318;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
         .divider {
             margin: 12px 0;
             border-top: 1px dashed var(--line);
@@ -229,6 +245,7 @@
                 <div class="subtitle">TICKET</div>
                 <div class="subtitle"><span class="mono">{{ $venta->codigo_sucursal }}</span> · {{ $venta->sucursal?->nombre ?? '-' }}</div>
                 <div class="subtitle">{{ $venta->fecha?->format('d/m/Y H:i') ?? '-' }}</div>
+                <div class="document-flag">Documento no fiscal</div>
 
                 <div class="divider"></div>
 

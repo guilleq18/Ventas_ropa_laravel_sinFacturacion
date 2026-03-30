@@ -5,6 +5,7 @@ namespace App\Domain\Ventas\Models;
 use App\Domain\Caja\Models\CajaSesion;
 use App\Domain\Core\Models\Sucursal;
 use App\Domain\CuentasCorrientes\Models\Cliente;
+use App\Domain\Fiscal\Models\VentaComprobante;
 use App\Domain\CuentasCorrientes\Models\MovimientoCuentaCorriente;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,30 @@ class Venta extends Model
     public const string MEDIO_PAGO_CUENTA_CORRIENTE = 'CUENTA_CORRIENTE';
     public const string MEDIO_PAGO_MIXTO = 'MIXTO';
 
+    public const string ACCION_FISCAL_SOLO_REGISTRO = 'SOLO_REGISTRO';
+    public const string ACCION_FISCAL_FACTURA_ELECTRONICA = 'FACTURA_ELECTRONICA';
+    public const string ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA = 'FACTURA_EXTERNA_REFERENCIADA';
+
+    public const string ESTADO_FISCAL_NO_REQUERIDO = 'NO_REQUERIDO';
+    public const string ESTADO_FISCAL_PENDIENTE = 'PENDIENTE';
+    public const string ESTADO_FISCAL_AUTORIZADO = 'AUTORIZADO';
+    public const string ESTADO_FISCAL_RECHAZADO = 'RECHAZADO';
+    public const string ESTADO_FISCAL_EXTERNO_REFERENCIADO = 'EXTERNO_REFERENCIADO';
+
+    public const array ACCIONES_FISCALES = [
+        self::ACCION_FISCAL_SOLO_REGISTRO => 'Solo registro',
+        self::ACCION_FISCAL_FACTURA_ELECTRONICA => 'Factura electrónica',
+        self::ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA => 'Comprobante externo',
+    ];
+
+    public const array ESTADOS_FISCALES = [
+        self::ESTADO_FISCAL_NO_REQUERIDO => 'No requerido',
+        self::ESTADO_FISCAL_PENDIENTE => 'Pendiente',
+        self::ESTADO_FISCAL_AUTORIZADO => 'Autorizado',
+        self::ESTADO_FISCAL_RECHAZADO => 'Rechazado',
+        self::ESTADO_FISCAL_EXTERNO_REFERENCIADO => 'Externo referenciado',
+    ];
+
     public $timestamps = false;
 
     protected $table = 'ventas';
@@ -39,6 +64,10 @@ class Venta extends Model
         'cliente_id',
         'estado',
         'medio_pago',
+        'accion_fiscal',
+        'estado_fiscal',
+        'venta_comprobante_principal_id',
+        'tiene_comprobante_fiscal',
         'total',
         'empresa_nombre_snapshot',
         'empresa_razon_social_snapshot',
@@ -55,6 +84,7 @@ class Venta extends Model
         return [
             'numero_sucursal' => 'integer',
             'fecha' => 'datetime',
+            'tiene_comprobante_fiscal' => 'boolean',
             'total' => 'decimal:2',
             'fiscal_items_sin_impuestos_nacionales' => 'decimal:2',
             'fiscal_items_iva_contenido' => 'decimal:2',
@@ -97,6 +127,16 @@ class Venta extends Model
         return $this->hasMany(MovimientoCuentaCorriente::class, 'venta_id');
     }
 
+    public function comprobantes(): HasMany
+    {
+        return $this->hasMany(VentaComprobante::class, 'venta_id');
+    }
+
+    public function comprobantePrincipal(): BelongsTo
+    {
+        return $this->belongsTo(VentaComprobante::class, 'venta_comprobante_principal_id');
+    }
+
     public function getCodigoSucursalAttribute(): string
     {
         if ($this->numero_sucursal) {
@@ -108,5 +148,26 @@ class Venta extends Model
         }
 
         return 's/n';
+    }
+
+    public function getAccionFiscalLabelAttribute(): string
+    {
+        return self::ACCIONES_FISCALES[$this->accion_fiscal] ?? self::ACCIONES_FISCALES[self::ACCION_FISCAL_SOLO_REGISTRO];
+    }
+
+    public function getEstadoFiscalLabelAttribute(): string
+    {
+        return self::ESTADOS_FISCALES[$this->estado_fiscal] ?? self::ESTADOS_FISCALES[self::ESTADO_FISCAL_NO_REQUERIDO];
+    }
+
+    public static function normalizeFiscalAction(?string $value): string
+    {
+        $normalized = strtoupper(trim((string) $value));
+
+        return match ($normalized) {
+            self::ACCION_FISCAL_FACTURA_ELECTRONICA => self::ACCION_FISCAL_FACTURA_ELECTRONICA,
+            self::ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA => self::ACCION_FISCAL_FACTURA_EXTERNA_REFERENCIADA,
+            default => self::ACCION_FISCAL_SOLO_REGISTRO,
+        };
     }
 }
