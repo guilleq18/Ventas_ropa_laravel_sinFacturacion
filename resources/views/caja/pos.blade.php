@@ -1829,6 +1829,79 @@
             line-height: 1.4;
         }
 
+        .venta-fiscal-alert {
+            border-radius: 20px;
+            border: 1px solid #f1d9a7;
+            background: linear-gradient(180deg, #fffdf7 0%, #fff6dd 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                0 0 0 1px rgba(241, 217, 167, 0.22);
+        }
+
+        .venta-fiscal-alert.is-rejected {
+            border-color: #f1c0bb;
+            background: linear-gradient(180deg, #fff8f7 0%, #fff0ef 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                0 0 0 1px rgba(241, 192, 187, 0.24);
+        }
+
+        .venta-fiscal-headline {
+            color: #7a2e0e;
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .venta-fiscal-alert.is-rejected .venta-fiscal-headline {
+            color: #b42318;
+        }
+
+        .venta-fiscal-copy {
+            margin-top: 8px;
+            color: #7a5a14;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .venta-fiscal-alert.is-rejected .venta-fiscal-copy {
+            color: #8f241b;
+        }
+
+        .venta-fiscal-copy strong {
+            color: #182032;
+        }
+
+        .venta-fiscal-meta {
+            margin-top: 12px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .venta-fiscal-meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .venta-fiscal-meta-row span:first-child {
+            color: #667085;
+            font-weight: 700;
+        }
+
+        .venta-fiscal-meta-row strong:last-child {
+            color: #182032;
+            text-align: right;
+        }
+
+        .venta-fiscal-note {
+            margin-top: 12px;
+            color: #667085;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
         .venta-table-shell {
             border-radius: 18px;
             border: 1px solid var(--pos-soft-border);
@@ -2383,6 +2456,9 @@
             color: #667085;
             font-size: 12px;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            min-height: 42px;
         }
 
         .payment-modal-footer {
@@ -2391,6 +2467,10 @@
             justify-content: flex-end;
             flex-wrap: wrap;
             gap: 10px;
+            min-height: 64px;
+            height: auto;
+            padding: 10px 14px;
+            box-sizing: border-box;
         }
 
         .payment-modal-footer-actions {
@@ -2404,6 +2484,13 @@
 
         .payment-modal-footer-actions form {
             margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-modal-footer > * {
+            margin-top: 0;
+            margin-bottom: 0;
         }
 
         .pos-modal-footer-btn {
@@ -3661,6 +3748,11 @@
     $lastSaleFiscalUrl = ($lastSale?->comprobantePrincipal?->es_imprimible ?? false)
         ? route('fiscal.comprobantes.show', $lastSale->comprobantePrincipal).'?print=1'
         : null;
+    $lastSaleFiscalStatus = $lastSaleView['fiscalStatus'] ?? null;
+    $lastSaleCanRetryFiscal = (bool) ($lastSaleFiscalStatus['canRetry'] ?? false);
+    $lastSaleFiscalRetryUrl = ($lastSale && $lastSaleCanRetryFiscal)
+        ? route('caja.fiscal.retry', $lastSale->comprobantePrincipal)
+        : null;
     $currentUrl = route('caja.pos');
     $cashierName = $cashSession?->cajeroApertura?->nombre_completo;
     $cashStatusLabel = $cashIsOpen
@@ -3673,6 +3765,17 @@
     $receiverIdentificationRequired = (bool) ($fiscalUi['requiere_receptor_en_todas'] ?? false)
         || (float) ($payments['total_cobrar'] ?? 0) >= (float) ($fiscalUi['consumer_final_threshold'] ?? 10000000);
 @endphp
+
+    @if ($autoFiscalPrintUrl)
+        <iframe
+            id="auto_fiscal_print_frame"
+            src="{{ $autoFiscalPrintUrl }}"
+            title="Impresión automática de factura"
+            loading="eager"
+            aria-hidden="true"
+            style="position:absolute; width:0; height:0; border:0; opacity:0; pointer-events:none;"
+        ></iframe>
+    @endif
 
     @if ($lastSale && $lastSaleView)
         <aside class="last-sale-rail hide-on-med-and-down" aria-label="Resumen de ultima venta">
@@ -3711,11 +3814,19 @@
                     <div class="rail-actions" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
                         <a href="{{ route('caja.ticket', $lastSale) }}" class="btn brown waves-effect waves-light">Ver venta</a>
                         <a href="{{ $lastSalePrintUrl }}" target="_blank" rel="noopener" class="btn green darken-1 waves-effect waves-light">
-                            <i class="material-icons left">print</i>Ticket
+                            <i class="material-icons left">print</i>Ticket no fiscal
                         </a>
+                        @if ($lastSaleFiscalRetryUrl)
+                            <form method="POST" action="{{ $lastSaleFiscalRetryUrl }}" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="btn amber darken-2 waves-effect waves-light" style="width:100%;">
+                                    <i class="material-icons left">refresh</i>Reintentar factura
+                                </button>
+                            </form>
+                        @endif
                         @if ($lastSaleFiscalUrl)
                             <a href="{{ $lastSaleFiscalUrl }}" target="_blank" rel="noopener" class="btn blue-grey darken-2 waves-effect waves-light">
-                                <i class="material-icons left">receipt_long</i>Comprobante fiscal
+                                <i class="material-icons left">receipt_long</i>Reimprimir factura
                             </a>
                         @endif
                     </div>
@@ -4765,6 +4876,59 @@
 
                 <div id="venta_modal_body" class="pos-modal-scroll">
                     <div class="venta-modal-stack">
+                        @if ($lastSaleFiscalStatus && ($lastSaleFiscalStatus['canRetry'] ?? false))
+                            <section @class([
+                                'venta-section-card',
+                                'venta-fiscal-alert',
+                                'is-rejected' => $lastSaleFiscalStatus['isRejected'] ?? false,
+                            ])>
+                                <div class="venta-section-head">
+                                    <div>
+                                        <div class="venta-fiscal-headline">
+                                            {{ $lastSaleFiscalStatus['isRejected'] ? 'Emisión fiscal rechazada' : 'Emisión fiscal pendiente' }}
+                                        </div>
+                                        <div class="venta-section-subtitle">
+                                            {{ $lastSaleFiscalStatus['headline'] }}
+                                        </div>
+                                    </div>
+                                    <div class="venta-summary-value">{{ $lastSale->comprobantePrincipal->estado_label }}</div>
+                                </div>
+
+                                @if ($lastSaleFiscalStatus['issueMessage'])
+                                    <div class="venta-fiscal-copy">
+                                        <strong>Qué pasó:</strong> {{ $lastSaleFiscalStatus['issueMessage'] }}
+                                    </div>
+                                @endif
+
+                                @if ($lastSaleFiscalStatus['technicalMessage'])
+                                    <div class="venta-fiscal-copy">
+                                        <strong>Detalle técnico:</strong> {{ $lastSaleFiscalStatus['technicalMessage'] }}
+                                    </div>
+                                @endif
+
+                                <div class="venta-fiscal-meta">
+                                    <div class="venta-fiscal-meta-row">
+                                        <span>Último intento</span>
+                                        <strong>{{ $lastSaleFiscalStatus['lastAttemptAt'] ?: 'Sin registro' }}</strong>
+                                    </div>
+                                    <div class="venta-fiscal-meta-row">
+                                        <span>Eventos registrados</span>
+                                        <strong>{{ $lastSaleFiscalStatus['eventCount'] }}</strong>
+                                    </div>
+                                    @if ($lastSaleFiscalStatus['lastEventDescription'])
+                                        <div class="venta-fiscal-meta-row">
+                                            <span>Último evento</span>
+                                            <strong>{{ $lastSaleFiscalStatus['lastEventDescription'] }}</strong>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="venta-fiscal-note">
+                                    Puedes reintentar ahora mismo. Este reintento vuelve a solicitar un CAE; el circuito con CAEA es aparte y todavía no está disponible en esta pantalla.
+                                </div>
+                            </section>
+                        @endif
+
                         <section class="venta-section-card">
                             <div class="venta-section-head">
                                 <div>
@@ -4835,13 +4999,21 @@
 
                 <div class="modal-footer">
                     <a href="{{ route('caja.ticket', $lastSale) }}" class="btn-flat pos-modal-footer-btn is-secondary">Ver detalle</a>
+                    @if ($lastSaleFiscalRetryUrl)
+                        <form method="POST" action="{{ $lastSaleFiscalRetryUrl }}" style="margin:0;">
+                            @csrf
+                            <button type="submit" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
+                                <i class="material-icons left">refresh</i>Reintentar factura
+                            </button>
+                        </form>
+                    @endif
                     @if ($lastSaleFiscalUrl)
                         <a href="{{ $lastSaleFiscalUrl }}" target="_blank" rel="noopener" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
-                            <i class="material-icons left">receipt_long</i>Comprobante fiscal
+                            <i class="material-icons left">receipt_long</i>Reimprimir factura
                         </a>
                     @endif
                     <a href="{{ $lastSalePrintUrl }}" target="_blank" rel="noopener" class="btn waves-effect waves-light pos-modal-footer-btn is-primary">
-                        <i class="material-icons left">print</i>Ticket
+                        <i class="material-icons left">print</i>Ticket no fiscal
                     </a>
                     <a href="#!" class="modal-close btn-flat pos-modal-footer-btn is-secondary">Cerrar</a>
                 </div>

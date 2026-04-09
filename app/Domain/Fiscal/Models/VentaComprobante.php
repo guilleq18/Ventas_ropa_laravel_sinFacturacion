@@ -101,6 +101,11 @@ class VentaComprobante extends Model
         return $this->hasMany(VentaComprobanteEvento::class, 'venta_comprobante_id');
     }
 
+    public function caeaComprobantes(): HasMany
+    {
+        return $this->hasMany(ArcaCaeaComprobante::class, 'venta_comprobante_id');
+    }
+
     public function getNumeroCompletoAttribute(): ?string
     {
         if (! $this->punto_venta || ! $this->numero_comprobante) {

@@ -7,7 +7,9 @@ use App\Domain\Caja\Support\CajaManager;
 use App\Domain\Caja\Support\PosSessionStore;
 use App\Domain\Caja\Support\VentaTicketViewBuilder;
 use App\Domain\Catalogo\Models\Variante;
+use App\Domain\Fiscal\Models\VentaComprobante;
 use App\Domain\Fiscal\Support\FiscalConfigManager;
+use App\Domain\Fiscal\Support\VentaComprobanteEmitter;
 use App\Domain\Ventas\Models\Venta;
 use App\Domain\Ventas\Support\VentaConfirmationService;
 use App\Http\Controllers\Controller;
@@ -29,6 +31,7 @@ class CajaController extends Controller
         protected AdminSettingsManager $settingsManager,
         protected FiscalConfigManager $fiscalConfigManager,
         protected VentaTicketViewBuilder $ticketViewBuilder,
+        protected VentaComprobanteEmitter $ventaComprobanteEmitter,
     ) {
     }
 
@@ -68,6 +71,7 @@ class CajaController extends Controller
         $showLastSaleModal = false;
         $fiscalUi = $this->fiscalConfigManager->branchUi(null);
         $fiscalDraft = $this->defaultFiscalDraft($fiscalUi);
+        $autoFiscalPrintUrl = null;
 
         try {
             $branch = $this->cajaManager->resolveSucursalForUser($request->user());
@@ -93,6 +97,7 @@ class CajaController extends Controller
 
             $fiscalUi = $this->fiscalConfigManager->branchUi($branch);
             $fiscalDraft = $this->posSessionStore->fiscalDraft($request, $this->defaultFiscalDraft($fiscalUi));
+            $autoFiscalPrintUrl = trim((string) $request->session()->pull('pos_auto_fiscal_print_url', '')) ?: null;
         } catch (DomainException $exception) {
             $setupError = $exception->getMessage();
         }
@@ -116,6 +121,7 @@ class CajaController extends Controller
             'lastSale' => $lastSale,
             'lastSaleView' => $lastSaleView,
             'showLastSaleModal' => $showLastSaleModal,
+            'autoFiscalPrintUrl' => $autoFiscalPrintUrl,
             'fiscalUi' => $fiscalUi,
             'fiscalDraft' => $fiscalDraft,
         ]);
@@ -456,6 +462,11 @@ class CajaController extends Controller
             $this->posSessionStore->refreshConfirmToken($request);
             $request->session()->put('pos_last_sale_id', $sale->id);
             $request->session()->put('pos_last_sale_modal_id', $sale->id);
+            $autoFiscalPrintUrl = $this->automaticFiscalPrintUrl($sale, $fiscalUi);
+
+            if ($autoFiscalPrintUrl !== null) {
+                $request->session()->put('pos_auto_fiscal_print_url', $autoFiscalPrintUrl);
+            }
 
             return redirect()
                 ->route('caja.pos')
@@ -501,6 +512,47 @@ class CajaController extends Controller
                 'ok' => false,
                 'message' => $exception->getMessage(),
             ], 422);
+        }
+    }
+
+    public function retryFiscalDocument(Request $request, VentaComprobante $ventaComprobante): RedirectResponse
+    {
+        try {
+            $branch = $this->cajaManager->resolveSucursalForUser($request->user());
+
+            if ((int) $ventaComprobante->sucursal_id !== (int) $branch->id) {
+                throw new DomainException('Solo puedes reintentar comprobantes de tu sucursal operativa.');
+            }
+
+            $document = $this->ventaComprobanteEmitter->retryElectronicDocument($request->user(), $ventaComprobante);
+            $sale = $document->venta?->load('comprobantePrincipal');
+            $fiscalUi = $this->fiscalConfigManager->branchUi($branch);
+
+            if (! $sale) {
+                throw new DomainException('No se encontró la venta asociada al comprobante.');
+            }
+
+            $request->session()->put('pos_last_sale_id', $sale->id);
+            $request->session()->put('pos_last_sale_modal_id', $sale->id);
+            $request->session()->forget('pos_auto_fiscal_print_url');
+
+            $autoFiscalPrintUrl = $this->automaticFiscalPrintUrl($sale, $fiscalUi);
+
+            if ($autoFiscalPrintUrl !== null) {
+                $request->session()->put('pos_auto_fiscal_print_url', $autoFiscalPrintUrl);
+            }
+
+            if ($sale->estado_fiscal === Venta::ESTADO_FISCAL_AUTORIZADO) {
+                return redirect()
+                    ->route('caja.pos')
+                    ->with('success', 'Factura reintentada y autorizada. Se enviará a impresión automáticamente.');
+            }
+
+            return redirect()
+                ->route('caja.pos')
+                ->with('error', $this->retryFiscalPendingMessage($document));
+        } catch (DomainException $exception) {
+            return $this->redirectWithError($request, $exception->getMessage());
         }
     }
 
@@ -646,5 +698,39 @@ class CajaController extends Controller
         }
 
         return $base.' La venta quedó pendiente de reproceso fiscal.';
+    }
+
+    protected function automaticFiscalPrintUrl(Venta $sale, array $fiscalUi): ?string
+    {
+        if (($fiscalUi['modo_operacion'] ?? null) !== \App\Domain\Fiscal\Models\SucursalFiscalConfig::MODO_FACTURACION_OBLIGATORIA) {
+            return null;
+        }
+
+        if ($sale->accion_fiscal !== Venta::ACCION_FISCAL_FACTURA_ELECTRONICA) {
+            return null;
+        }
+
+        $document = $sale->comprobantePrincipal;
+
+        if (! ($document?->es_imprimible ?? false)) {
+            return null;
+        }
+
+        return route('fiscal.comprobantes.show', $document).'?print=1';
+    }
+
+    protected function retryFiscalPendingMessage(VentaComprobante $document): string
+    {
+        $runtimeError = trim((string) data_get($document->response_payload_json, 'runtime_error', ''));
+
+        if ($document->estado === VentaComprobante::ESTADO_RECHAZADO) {
+            return 'ARCA rechazó nuevamente el comprobante. Revisa el detalle fiscal antes de volver a intentar.';
+        }
+
+        if ($runtimeError !== '') {
+            return 'La factura sigue pendiente. Último error: '.$runtimeError;
+        }
+
+        return 'La factura sigue pendiente de autorización. Revisa el detalle fiscal y vuelve a intentar.';
     }
 }

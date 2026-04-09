@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/fiscal-draft', [CajaController::class, 'saveFiscalDraft'])->name('fiscal-draft.save');
         Route::post('/confirmar', [CajaController::class, 'confirmSale'])->name('confirmar');
         Route::post('/confirmar-preview', [CajaController::class, 'confirmSale'])->name('confirmar.preview');
+        Route::post('/fiscal/reintentar/{ventaComprobante}', [CajaController::class, 'retryFiscalDocument'])->name('fiscal.retry');
         Route::get('/ticket/{venta}', TicketController::class)->name('ticket');
     });
 

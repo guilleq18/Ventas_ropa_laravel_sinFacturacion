@@ -190,6 +190,7 @@ class FiscalDocumentBuilder
                         'doc_nro' => $receiver['doc_number_display'],
                         'nombre' => $receiver['name'],
                         'domicilio' => $receiver['address'],
+                        'condicion_iva_key' => $receiver['vat_condition_key'],
                         'condicion_iva' => $receiver['vat_condition_label'],
                         'condicion_iva_id' => $receiver['vat_condition_id'],
                     ],
@@ -208,6 +209,24 @@ class FiscalDocumentBuilder
                 'detail' => $detail,
             ],
             'receiver' => $receiver,
+        ];
+    }
+
+    public function retryPayloadFromDocument(VentaComprobante $document): array
+    {
+        $receiver = (array) data_get($document->request_payload_json, 'receptor', []);
+        $docTypeKey = $this->normalizeDocTypeKey((string) (
+            $receiver['doc_tipo'] ?? $this->docTypeKeyFromCode((int) ($document->doc_tipo_receptor ?? 99))
+        ));
+        $documentNumber = preg_replace('/\D+/', '', (string) ($receiver['doc_nro'] ?? $document->doc_nro_receptor ?? '')) ?: '';
+        $vatConditionKey = $this->resolveStoredVatConditionKey($document, $receiver);
+
+        return [
+            'fiscal_receptor_doc_tipo' => $docTypeKey,
+            'fiscal_receptor_doc_nro' => $docTypeKey === 'CONSUMIDOR_FINAL' ? '' : $documentNumber,
+            'fiscal_receptor_nombre' => trim((string) ($receiver['nombre'] ?? $document->receptor_nombre ?? '')),
+            'fiscal_receptor_domicilio' => trim((string) ($receiver['domicilio'] ?? $document->receptor_domicilio ?? '')),
+            'fiscal_receptor_condicion_iva' => $vatConditionKey,
         ];
     }
 
@@ -413,5 +432,40 @@ class FiscalDocumentBuilder
     protected function normalizeInvoiceClass(?string $class): string
     {
         return strtoupper(trim((string) $class)) === 'B' ? 'B' : 'C';
+    }
+
+    protected function docTypeKeyFromCode(int $code): string
+    {
+        foreach (self::DOC_TYPE_OPTIONS as $key => $meta) {
+            if ((int) ($meta['code'] ?? 0) === $code) {
+                return $key;
+            }
+        }
+
+        return 'CONSUMIDOR_FINAL';
+    }
+
+    protected function resolveStoredVatConditionKey(VentaComprobante $document, array $receiver): string
+    {
+        $storedKey = trim((string) ($receiver['condicion_iva_key'] ?? ''));
+
+        if ($storedKey !== '') {
+            return $this->normalizeReceiverVatConditionKey($storedKey);
+        }
+
+        $storedId = (int) ($receiver['condicion_iva_id'] ?? 0);
+        $normalizedClass = $this->normalizeInvoiceClass($document->clase);
+
+        if ($storedId > 0) {
+            foreach (self::RECEIVER_VAT_CONDITION_OPTIONS as $key => $meta) {
+                if ((int) ($meta['by_class'][$normalizedClass] ?? 0) === $storedId) {
+                    return $key;
+                }
+            }
+        }
+
+        return $this->normalizeReceiverVatConditionKey((string) (
+            $receiver['condicion_iva'] ?? $document->receptor_condicion_iva ?? 'CONSUMIDOR_FINAL'
+        ));
     }
 }

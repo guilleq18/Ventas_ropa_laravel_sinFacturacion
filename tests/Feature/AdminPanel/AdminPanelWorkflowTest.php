@@ -8,6 +8,8 @@ use App\Domain\Catalogo\Models\Producto;
 use App\Domain\Catalogo\Models\Variante;
 use App\Domain\Core\Models\AppSetting;
 use App\Domain\Core\Models\Sucursal;
+use App\Domain\Fiscal\Models\ArcaCaeaComprobante;
+use App\Domain\Fiscal\Models\ArcaCaeaPeriodo;
 use App\Domain\Fiscal\Models\SucursalFiscalConfig;
 use App\Domain\Fiscal\Models\VentaComprobante;
 use App\Domain\Fiscal\Support\ArcaCredentialManager;
@@ -149,6 +151,112 @@ class AdminPanelWorkflowTest extends TestCase
             'requiere_receptor_en_todas' => true,
             'domicilio_fiscal_emision' => 'Av. Fiscal 123',
         ]);
+    }
+
+    public function test_facturacion_electronica_can_list_authorized_documents_with_cae(): void
+    {
+        $user = User::factory()->create();
+        $fixture = $this->createConfirmedSaleFixture($user);
+
+        $document = VentaComprobante::query()->create([
+            'venta_id' => $fixture['venta']->id,
+            'sucursal_id' => $fixture['branch']->id,
+            'modo_emision' => VentaComprobante::MODO_ELECTRONICA_ARCA,
+            'estado' => VentaComprobante::ESTADO_AUTORIZADO,
+            'tipo_comprobante' => VentaComprobante::TIPO_FACTURA,
+            'clase' => 'B',
+            'codigo_arca' => 6,
+            'punto_venta' => 3,
+            'numero_comprobante' => 1,
+            'fecha_emision' => now(),
+            'doc_tipo_receptor' => 96,
+            'doc_nro_receptor' => '30123456',
+            'receptor_nombre' => 'Lucia Fernandez',
+            'importe_neto' => '10000.00',
+            'importe_iva' => '2100.00',
+            'importe_otros_tributos' => '0.00',
+            'importe_total' => '12100.00',
+            'cae' => '99990000123456',
+            'cae_vto' => now()->addDays(10)->toDateString(),
+            'qr_payload_json' => ['ver' => 1],
+            'qr_url' => 'https://www.arca.gob.ar/fe/qr/?p=fake',
+            'emitido_en' => now(),
+        ]);
+
+        $fixture['venta']->update([
+            'accion_fiscal' => Venta::ACCION_FISCAL_FACTURA_ELECTRONICA,
+            'estado_fiscal' => Venta::ESTADO_FISCAL_AUTORIZADO,
+            'tiene_comprobante_fiscal' => true,
+            'venta_comprobante_principal_id' => $document->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.settings.index', [
+                'tab' => 'facturacion',
+                'facturacion_tab' => 'comprobantes',
+                'sucursal' => $fixture['branch']->id,
+            ]))
+            ->assertOk()
+            ->assertSee('Comprobantes autorizados con CAE')
+            ->assertSee('99990000123456')
+            ->assertSee('0003-00000001')
+            ->assertSee(route('fiscal.comprobantes.show', $document).'?print=1')
+            ->assertSee(route('admin-panel.ventas.show', $fixture['venta']));
+    }
+
+    public function test_facturacion_electronica_can_list_caea_periods(): void
+    {
+        $user = User::factory()->create();
+        $branch = Sucursal::query()->create([
+            'nombre' => 'Casa Central',
+            'activa' => true,
+        ]);
+
+        ArcaCaeaPeriodo::query()->create([
+            'entorno' => ArcaCaeaPeriodo::ENTORNO_HOMOLOGACION,
+            'cuit_representada' => '20364362634',
+            'periodo' => 202604,
+            'orden' => 1,
+            'caea' => '12345678901234',
+            'estado_solicitud' => ArcaCaeaPeriodo::ESTADO_SOLICITUD_AUTORIZADO,
+            'estado_informacion' => ArcaCaeaPeriodo::ESTADO_INFORMACION_PENDIENTE,
+            'vigente_desde' => '2026-04-01',
+            'vigente_hasta' => '2026-04-15',
+            'fecha_tope_informar' => '2026-04-23',
+            'comprobantes_informados' => 0,
+            'ultimo_synced_at' => now(),
+        ]);
+
+        ArcaCaeaComprobante::query()->create([
+            'arca_caea_periodo_id' => ArcaCaeaPeriodo::query()->firstOrFail()->id,
+            'sucursal_id' => $branch->id,
+            'punto_venta' => 3,
+            'codigo_arca' => 11,
+            'numero_comprobante' => 27,
+            'fecha_emision' => '2026-04-05',
+            'receptor_nombre' => 'Ana Lopez',
+            'doc_nro_receptor' => '30111222',
+            'importe_total' => '20000.00',
+            'estado_rendicion' => ArcaCaeaComprobante::ESTADO_RENDICION_INFORMADO,
+            'informado_en' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin-panel.settings.index', [
+                'tab' => 'facturacion',
+                'facturacion_tab' => 'caea',
+                'sucursal' => $branch->id,
+            ]))
+            ->assertOk()
+            ->assertSee('Períodos CAEA autorizados e informables')
+            ->assertSee('12345678901234')
+            ->assertSee('04/2026')
+            ->assertSee('1ra quincena')
+            ->assertSee('Pendiente')
+            ->assertSee('20364362634')
+            ->assertSee('0003-00000027')
+            ->assertSee('Informado')
+            ->assertSee('Ana Lopez');
     }
 
     public function test_arca_credentials_can_be_generated_from_admin_settings(): void

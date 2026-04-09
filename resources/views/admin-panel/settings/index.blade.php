@@ -67,6 +67,8 @@
 @section('content')
     @php
         $tab = old('tab', $tab ?? 'ventas');
+        $facturacionTab = old('facturacion_tab', $facturacionTab ?? 'configuracion');
+        $money = fn ($value) => '$' . number_format((float) $value, 2, ',', '.');
         $hasBranches = $branches->isNotEmpty();
         $fiscalFacturacionHabilitada = old('fiscal_facturacion_habilitada', $fiscalUi['facturacion_habilitada'] ?? false);
         $fiscalRequiereReceptor = old('fiscal_requiere_receptor_en_todas', $fiscalUi['requiere_receptor_en_todas'] ?? false);
@@ -83,6 +85,20 @@
         $tabRouteParams = fn (string $targetTab) => array_filter([
             'tab' => $targetTab,
             'sucursal' => $selectedBranch?->id,
+        ], fn ($value) => $value !== null && $value !== '');
+        $facturacionTabRouteParams = fn (string $targetSubtab) => array_filter([
+            'tab' => 'facturacion',
+            'facturacion_tab' => $targetSubtab,
+            'sucursal' => $selectedBranch?->id,
+            'documentos_sucursal' => $targetSubtab === 'comprobantes' ? ($authorizedDocumentsFilters['sucursal'] ?? null) : null,
+            'documentos_from' => $targetSubtab === 'comprobantes' ? ($authorizedDocumentsFilters['from'] ?? null) : null,
+            'documentos_to' => $targetSubtab === 'comprobantes' ? ($authorizedDocumentsFilters['to'] ?? null) : null,
+            'documentos_q' => $targetSubtab === 'comprobantes' ? ($authorizedDocumentsFilters['q'] ?? null) : null,
+            'caea_entorno' => $targetSubtab === 'caea' ? ($caeaPeriodsFilters['entorno'] ?? null) : null,
+            'caea_estado_solicitud' => $targetSubtab === 'caea' ? ($caeaPeriodsFilters['estado_solicitud'] ?? null) : null,
+            'caea_estado_informacion' => $targetSubtab === 'caea' ? ($caeaPeriodsFilters['estado_informacion'] ?? null) : null,
+            'caea_cuit' => $targetSubtab === 'caea' ? ($caeaPeriodsFilters['cuit'] ?? null) : null,
+            'caea_q' => $targetSubtab === 'caea' ? ($caeaPeriodsFilters['q'] ?? null) : null,
         ], fn ($value) => $value !== null && $value !== '');
     @endphp
     <div class="cfg-page">
@@ -104,6 +120,22 @@
                 <div class="card-content">
                     <form method="GET" action="{{ route('admin-panel.settings.index') }}">
                         <input type="hidden" name="tab" value="{{ $tab }}">
+                        @if ($tab === 'facturacion')
+                            <input type="hidden" name="facturacion_tab" value="{{ $facturacionTab }}">
+                            @if ($facturacionTab === 'comprobantes')
+                                <input type="hidden" name="documentos_sucursal" value="{{ $authorizedDocumentsFilters['sucursal'] ?? '' }}">
+                                <input type="hidden" name="documentos_from" value="{{ $authorizedDocumentsFilters['from'] ?? '' }}">
+                                <input type="hidden" name="documentos_to" value="{{ $authorizedDocumentsFilters['to'] ?? '' }}">
+                                <input type="hidden" name="documentos_q" value="{{ $authorizedDocumentsFilters['q'] ?? '' }}">
+                            @endif
+                            @if ($facturacionTab === 'caea')
+                                <input type="hidden" name="caea_entorno" value="{{ $caeaPeriodsFilters['entorno'] ?? '' }}">
+                                <input type="hidden" name="caea_estado_solicitud" value="{{ $caeaPeriodsFilters['estado_solicitud'] ?? '' }}">
+                                <input type="hidden" name="caea_estado_informacion" value="{{ $caeaPeriodsFilters['estado_informacion'] ?? '' }}">
+                                <input type="hidden" name="caea_cuit" value="{{ $caeaPeriodsFilters['cuit'] ?? '' }}">
+                                <input type="hidden" name="caea_q" value="{{ $caeaPeriodsFilters['q'] ?? '' }}">
+                            @endif
+                        @endif
                         <div class="row">
                             <div class="input-field col s12 m8">
                                 <select name="sucursal">
@@ -126,7 +158,9 @@
                         <div class="cfg-toolbar-note">
                             {{ $tab === 'credenciales'
                                 ? 'Las credenciales son globales. La sucursal seleccionada solo se usa para ejecutar la prueba de homologación desde el panel.'
-                                : 'Las opciones mostradas impactan en el POS de esa sucursal. Si una opción no fue configurada, se usa el valor global como fallback.' }}
+                                : ($tab === 'facturacion' && $facturacionTab === 'caea'
+                                    ? 'Los períodos CAEA se administran por CUIT representada y quincena. La sucursal seleccionada se conserva solo como contexto de navegación.'
+                                    : 'Las opciones mostradas impactan en el POS de esa sucursal. Si una opción no fue configurada, se usa el valor global como fallback.') }}
                         </div>
                     </div>
                 </div>
@@ -423,126 +457,149 @@
         @endif
 
         @if ($tab === 'facturacion')
-            @if (! $selectedBranch || ! $fiscalUi)
-                <div class="card cfg-section">
-                    <div class="card-content">
-                        <div class="cfg-note">Necesitás al menos una sucursal activa para configurar facturación por sucursal.</div>
+            <div class="card cfg-tabs" style="margin:0;">
+                <div class="card-content">
+                    <div class="cfg-tab-list">
+                        <a class="btn {{ $facturacionTab === 'configuracion' ? 'blue' : 'grey lighten-3 black-text' }} waves-effect cfg-tab-btn" href="{{ route('admin-panel.settings.index', $facturacionTabRouteParams('configuracion')) }}">
+                            <i class="material-icons left">settings</i>Configuración fiscal
+                        </a>
+                        <a class="btn {{ $facturacionTab === 'comprobantes' ? 'blue' : 'grey lighten-3 black-text' }} waves-effect cfg-tab-btn" href="{{ route('admin-panel.settings.index', $facturacionTabRouteParams('comprobantes')) }}">
+                            <i class="material-icons left">receipt_long</i>CAE emitidos
+                        </a>
+                        <a class="btn {{ $facturacionTab === 'caea' ? 'blue' : 'grey lighten-3 black-text' }} waves-effect cfg-tab-btn" href="{{ route('admin-panel.settings.index', $facturacionTabRouteParams('caea')) }}">
+                            <i class="material-icons left">fact_check</i>Períodos CAEA
+                        </a>
                     </div>
                 </div>
-            @else
-                <form method="POST" action="{{ route('admin-panel.settings.update') }}" style="margin:0;">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="sucursal_id" value="{{ $selectedBranch?->id }}">
-                    <input type="hidden" name="tab" value="facturacion">
+            </div>
 
+            @if ($facturacionTab === 'configuracion')
+                @if (! $selectedBranch || ! $fiscalUi)
                     <div class="card cfg-section">
                         <div class="card-content">
-                            <div class="cfg-section-head">
-                                <div>
-                                    <h4 class="cfg-section-title">Facturación electrónica</h4>
-                                    <p class="cfg-section-subtitle">Configuración mínima por sucursal para el circuito fiscal del POS.</p>
-                                </div>
-                                <span class="cfg-chip"><i class="material-icons">receipt_long</i>{{ $fiscalUi['mode_label'] }}</span>
-                            </div>
+                            <div class="cfg-note">Necesitás al menos una sucursal activa para configurar facturación por sucursal.</div>
+                        </div>
+                    </div>
+                @else
+                    <form method="POST" action="{{ route('admin-panel.settings.update') }}" style="margin:0;">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="sucursal_id" value="{{ $selectedBranch?->id }}">
+                        <input type="hidden" name="tab" value="facturacion">
+                        <input type="hidden" name="facturacion_tab" value="configuracion">
 
-                            <div class="cfg-grid-2">
-                                <div class="cfg-field">
-                                    <label for="fiscal_modo_operacion">Modo fiscal</label>
-                                    <select id="fiscal_modo_operacion" name="fiscal_modo_operacion" class="browser-default">
-                                        @foreach ($fiscalUi['modes'] as $value => $label)
-                                            <option value="{{ $value }}" @selected(old('fiscal_modo_operacion', $fiscalUi['modo_operacion']) === $value)>{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('fiscal_modo_operacion')<div class="cfg-error">{{ $message }}</div>@enderror
-                                </div>
-
-                                <div class="cfg-field">
-                                    <label for="fiscal_entorno">Entorno fiscal</label>
-                                    <select id="fiscal_entorno" name="fiscal_entorno" class="browser-default">
-                                        @foreach ($fiscalUi['environments'] as $value => $label)
-                                            <option value="{{ $value }}" @selected(old('fiscal_entorno', $fiscalUi['entorno']) === $value)>{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('fiscal_entorno')<div class="cfg-error">{{ $message }}</div>@enderror
+                        <div class="card cfg-section">
+                            <div class="card-content">
+                                <div class="cfg-section-head">
+                                    <div>
+                                        <h4 class="cfg-section-title">Facturación electrónica</h4>
+                                        <p class="cfg-section-subtitle">Configuración mínima por sucursal para el circuito fiscal del POS.</p>
+                                    </div>
+                                    <span class="cfg-chip"><i class="material-icons">receipt_long</i>{{ $fiscalUi['mode_label'] }}</span>
                                 </div>
 
-                                <div class="cfg-field">
-                                    <label for="fiscal_punto_venta">Punto de venta fiscal</label>
-                                    <input id="fiscal_punto_venta" type="number" min="1" name="fiscal_punto_venta" value="{{ old('fiscal_punto_venta', $fiscalUi['punto_venta']) }}">
-                                    @error('fiscal_punto_venta')<div class="cfg-error">{{ $message }}</div>@enderror
+                                <div class="cfg-grid-2">
+                                    <div class="cfg-field">
+                                        <label for="fiscal_modo_operacion">Modo fiscal</label>
+                                        <select id="fiscal_modo_operacion" name="fiscal_modo_operacion" class="browser-default">
+                                            @foreach ($fiscalUi['modes'] as $value => $label)
+                                                <option value="{{ $value }}" @selected(old('fiscal_modo_operacion', $fiscalUi['modo_operacion']) === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('fiscal_modo_operacion')<div class="cfg-error">{{ $message }}</div>@enderror
+                                    </div>
+
+                                    <div class="cfg-field">
+                                        <label for="fiscal_entorno">Entorno fiscal</label>
+                                        <select id="fiscal_entorno" name="fiscal_entorno" class="browser-default">
+                                            @foreach ($fiscalUi['environments'] as $value => $label)
+                                                <option value="{{ $value }}" @selected(old('fiscal_entorno', $fiscalUi['entorno']) === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('fiscal_entorno')<div class="cfg-error">{{ $message }}</div>@enderror
+                                    </div>
+
+                                    <div class="cfg-field">
+                                        <label for="fiscal_punto_venta">Punto de venta fiscal</label>
+                                        <input id="fiscal_punto_venta" type="number" min="1" name="fiscal_punto_venta" value="{{ old('fiscal_punto_venta', $fiscalUi['punto_venta']) }}">
+                                        @error('fiscal_punto_venta')<div class="cfg-error">{{ $message }}</div>@enderror
+                                    </div>
+
+                                    <div class="cfg-field">
+                                        <label for="fiscal_domicilio_fiscal_emision">Domicilio fiscal de emision</label>
+                                        <input id="fiscal_domicilio_fiscal_emision" type="text" name="fiscal_domicilio_fiscal_emision" value="{{ old('fiscal_domicilio_fiscal_emision', $fiscalUi['domicilio_fiscal_emision']) }}">
+                                        @error('fiscal_domicilio_fiscal_emision')<div class="cfg-error">{{ $message }}</div>@enderror
+                                    </div>
                                 </div>
 
-                                <div class="cfg-field">
-                                    <label for="fiscal_domicilio_fiscal_emision">Domicilio fiscal de emision</label>
-                                    <input id="fiscal_domicilio_fiscal_emision" type="text" name="fiscal_domicilio_fiscal_emision" value="{{ old('fiscal_domicilio_fiscal_emision', $fiscalUi['domicilio_fiscal_emision']) }}">
-                                    @error('fiscal_domicilio_fiscal_emision')<div class="cfg-error">{{ $message }}</div>@enderror
+                                <div class="cfg-box" style="margin-top:14px;">
+                                    <div class="switch">
+                                        <label>
+                                            No
+                                            <input type="hidden" name="fiscal_facturacion_habilitada" value="0">
+                                            <input type="checkbox" name="fiscal_facturacion_habilitada" value="1" @checked($fiscalFacturacionHabilitada)>
+                                            <span class="lever"></span>
+                                            Sí
+                                        </label>
+                                    </div>
+                                    <div style="margin-top:8px;">Habilita el circuito de facturación electrónica para esta sucursal. Si el gateway está en <b>ARCA</b> y las credenciales existen, el sistema ya puede pedir CAE real en homologación.</div>
+                                    @error('fiscal_facturacion_habilitada')<div class="cfg-error" style="margin-top:8px;">{{ $message }}</div>@enderror
                                 </div>
-                            </div>
 
-                            <div class="cfg-box" style="margin-top:14px;">
-                                <div class="switch">
-                                    <label>
-                                        No
-                                        <input type="hidden" name="fiscal_facturacion_habilitada" value="0">
-                                        <input type="checkbox" name="fiscal_facturacion_habilitada" value="1" @checked($fiscalFacturacionHabilitada)>
-                                        <span class="lever"></span>
-                                        Sí
-                                    </label>
+                                <div class="cfg-box" style="margin-top:14px;">
+                                    <div class="switch">
+                                        <label>
+                                            No
+                                            <input type="hidden" name="fiscal_requiere_receptor_en_todas" value="0">
+                                            <input type="checkbox" name="fiscal_requiere_receptor_en_todas" value="1" @checked($fiscalRequiereReceptor)>
+                                            <span class="lever"></span>
+                                            Sí
+                                        </label>
+                                    </div>
+                                    <div style="margin-top:8px;">Reserva la política para exigir datos del receptor en todas las ventas fiscales. Queda persistida ahora para las siguientes fases.</div>
                                 </div>
-                                <div style="margin-top:8px;">Habilita el circuito de facturación electrónica para esta sucursal. Si el gateway está en <b>ARCA</b> y las credenciales existen, el sistema ya puede pedir CAE real en homologación.</div>
-                                @error('fiscal_facturacion_habilitada')<div class="cfg-error" style="margin-top:8px;">{{ $message }}</div>@enderror
-                            </div>
 
-                            <div class="cfg-box" style="margin-top:14px;">
-                                <div class="switch">
-                                    <label>
-                                        No
-                                        <input type="hidden" name="fiscal_requiere_receptor_en_todas" value="0">
-                                        <input type="checkbox" name="fiscal_requiere_receptor_en_todas" value="1" @checked($fiscalRequiereReceptor)>
-                                        <span class="lever"></span>
-                                        Sí
-                                    </label>
+                                <div class="cfg-note" style="margin-top:14px;">
+                                    <strong>Estado de preparación:</strong>
+                                    @if ($fiscalUi['electronic_issues'] === [])
+                                        La sucursal tiene los datos mínimos para avanzar con el circuito electrónico.
+                                    @else
+                                        <ul class="cfg-issues" style="margin-top:8px;">
+                                            @foreach ($fiscalUi['electronic_issues'] as $issue)
+                                                <li>{{ $issue }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
                                 </div>
-                                <div style="margin-top:8px;">Reserva la política para exigir datos del receptor en todas las ventas fiscales. Queda persistida ahora para las siguientes fases.</div>
-                            </div>
 
-                            <div class="cfg-note" style="margin-top:14px;">
-                                <strong>Estado de preparación:</strong>
-                                @if ($fiscalUi['electronic_issues'] === [])
-                                    La sucursal tiene los datos mínimos para avanzar con el circuito electrónico.
-                                @else
-                                    <ul class="cfg-issues" style="margin-top:8px;">
-                                        @foreach ($fiscalUi['electronic_issues'] as $issue)
-                                            <li>{{ $issue }}</li>
-                                        @endforeach
+                                <div class="cfg-note" style="margin-top:14px;">
+                                    <strong>Credenciales ARCA detectadas:</strong>
+                                    <ul class="cfg-list" style="margin-top:8px;">
+                                        <li>CUIT representado: {{ data_get($arcaCredentials, 'represented_cuit.configured') ? (data_get($arcaCredentials, 'represented_cuit.masked') ?: 'configurado') : 'faltante' }}</li>
+                                        <li>Certificado: {{ data_get($arcaCredentials, 'certificate.exists') ? 'ok' : (data_get($arcaCredentials, 'certificate.configured') ? 'ruta configurada pero archivo no encontrado' : 'faltante') }}</li>
+                                        <li>Clave privada: {{ data_get($arcaCredentials, 'private_key.exists') ? 'ok' : (data_get($arcaCredentials, 'private_key.configured') ? 'ruta configurada pero archivo no encontrado' : 'faltante') }}</li>
+                                        <li>CSR disponible: {{ data_get($arcaCredentials, 'csr.exists') ? 'sí' : 'no' }}</li>
                                     </ul>
-                                @endif
-                            </div>
-
-                            <div class="cfg-note" style="margin-top:14px;">
-                                <strong>Credenciales ARCA detectadas:</strong>
-                                <ul class="cfg-list" style="margin-top:8px;">
-                                    <li>CUIT representado: {{ data_get($arcaCredentials, 'represented_cuit.configured') ? (data_get($arcaCredentials, 'represented_cuit.masked') ?: 'configurado') : 'faltante' }}</li>
-                                    <li>Certificado: {{ data_get($arcaCredentials, 'certificate.exists') ? 'ok' : (data_get($arcaCredentials, 'certificate.configured') ? 'ruta configurada pero archivo no encontrado' : 'faltante') }}</li>
-                                    <li>Clave privada: {{ data_get($arcaCredentials, 'private_key.exists') ? 'ok' : (data_get($arcaCredentials, 'private_key.configured') ? 'ruta configurada pero archivo no encontrado' : 'faltante') }}</li>
-                                    <li>CSR disponible: {{ data_get($arcaCredentials, 'csr.exists') ? 'sí' : 'no' }}</li>
-                                </ul>
-                                <div style="margin-top:8px;">La generación y carga de certificados ahora se administra desde la pestaña <b>Credenciales ARCA</b>.</div>
-                                <div style="margin-top:8px;">Alternativa por consola: <code>.\scripts\artisan-local.ps1 fiscal:homologacion-probar {{ $selectedBranch?->id }}</code></div>
+                                    <div style="margin-top:8px;">La generación y carga de certificados ahora se administra desde la pestaña <b>Credenciales ARCA</b>.</div>
+                                    <div style="margin-top:8px;">Alternativa por consola: <code>.\scripts\artisan-local.ps1 fiscal:homologacion-probar {{ $selectedBranch?->id }}</code></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="card cfg-actions">
-                        <div class="card-content">
-                            <div class="cfg-actions-note">Guarda los cambios fiscales para la sucursal <b>{{ $selectedBranch?->nombre }}</b>.</div>
-                            <button class="btn waves-effect waves-light" type="submit">
-                                <i class="material-icons left">save</i>Guardar configuración
-                            </button>
+                        <div class="card cfg-actions">
+                            <div class="card-content">
+                                <div class="cfg-actions-note">Guarda los cambios fiscales para la sucursal <b>{{ $selectedBranch?->nombre }}</b>.</div>
+                                <button class="btn waves-effect waves-light" type="submit">
+                                    <i class="material-icons left">save</i>Guardar configuración
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                @endif
+            @elseif ($facturacionTab === 'comprobantes')
+                @include('admin-panel.settings.partials.facturacion-comprobantes')
+            @else
+                @include('admin-panel.settings.partials.facturacion-caea')
             @endif
         @endif
     </div>
